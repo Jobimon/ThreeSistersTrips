@@ -1,6 +1,7 @@
-const firebaseConfig = {
+window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyDA3vgzzLHyg2d0Xv3XnKU2gSjDyGBvWr0",
   authDomain: "threesisterseuropetrip.firebaseapp.com",
+  databaseURL: "https://threesisterseuropetrip-default-rtdb.firebaseio.com",
   projectId: "threesisterseuropetrip",
   storageBucket: "threesisterseuropetrip.firebasestorage.app",
   messagingSenderId: "421699331524",
