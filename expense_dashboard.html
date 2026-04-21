@@ -471,11 +471,9 @@
       <div class="auth-status" id="authStatus">Viewing mode. Sign in to add, edit, or delete expenses.</div>
       <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
         <div class="share-box" style="display:flex; align-items:center; gap:10px;">
-          <span>Currency</span>
-          <select id="currencySelect" style="width:auto; min-width:110px; padding:10px 12px;">
-            <option value="EUR">EUR</option>
-            <option value="USD">USD</option>
-            <option value="INR">INR</option>
+          <span>Report Currency</span>
+          <select id="currencySelect" style="width:auto; min-width:110px; padding:10px 12px;" disabled>
+            <option value="USD" selected>USD</option>
           </select>
         </div>
         <div class="share-box" id="lastUpdated">Connecting to Firebase...</div>
@@ -572,6 +570,20 @@
             <input id="expenseDate" type="date" />
           </div>
         </div>
+        <div class="form-grid" style="margin-top:12px;">
+          <div class="field">
+            <label for="expenseCurrency">Expense currency</label>
+            <select id="expenseCurrency">
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+              <option value="INR">INR</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fxPreview">Stored in report as</label>
+            <input id="fxPreview" value="USD (auto-converted on save)" disabled />
+          </div>
+        </div>
         <div class="field" style="margin-top:12px;">
           <label>Split type</label>
           <div class="pill-toggle">
@@ -652,6 +664,18 @@
     </div>
   </div>
 
+  <script>
+    window.FIREBASE_CONFIG_FALLBACK = {
+      apiKey: "AIzaSyDA3vgzzLHyg2d0Xv3XnKU2gSjDyGBvWr0",
+      authDomain: "threesisterseuropetrip.firebaseapp.com",
+      projectId: "threesisterseuropetrip",
+      storageBucket: "threesisterseuropetrip.firebasestorage.app",
+      messagingSenderId: "421699331524",
+      appId: "1:421699331524:web:abc123"
+    };
+    window.EXPENSE_DASHBOARD_ID = window.EXPENSE_DASHBOARD_ID || 'shared-expense-dashboard';
+    window.EXPENSE_CURRENCY = window.EXPENSE_CURRENCY || 'EUR';
+  </script>
   <script src="./firebase-config.js"></script>
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
@@ -676,9 +700,11 @@
       serverTimestamp
     } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-    const config = window.FIREBASE_CONFIG;
+    const fallbackConfig = window.FIREBASE_CONFIG_FALLBACK || {};
+    const liveConfig = window.FIREBASE_CONFIG || {};
+    const config = (liveConfig.apiKey && /^AIza[0-9A-Za-z_-]{20,}$/.test(String(liveConfig.apiKey))) ? liveConfig : fallbackConfig;
     if (!config || !config.apiKey) {
-      document.body.innerHTML = '<div style="padding:24px;color:white;font-family:Arial">Missing Firebase config. Update <b>firebase-config.js</b> first.</div>';
+      document.body.innerHTML = '<div style="padding:24px;color:white;font-family:Arial">Firebase config is missing or invalid. Check <b>firebase-config.js</b> or the inline fallback config.</div>';
       throw new Error('Missing Firebase config');
     }
 
@@ -691,7 +717,7 @@
     const membersRef = collection(db, 'expenseDashboards', dashboardId, 'members');
     const expensesRef = collection(db, 'expenseDashboards', dashboardId, 'expenses');
 
-    let currency = window.EXPENSE_CURRENCY || 'EUR';
+    let currency = 'USD';
 
     function moneyFormatter() {
       return new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 2 });
@@ -699,6 +725,37 @@
 
     function fmtMoney(value) {
       return moneyFormatter().format(Number(value || 0));
+    }
+
+    function getStoredUsdAmount(exp) {
+      if (typeof exp?.usdAmount === 'number') return Number(exp.usdAmount || 0);
+      return Number(exp?.amount || 0);
+    }
+
+    function fmtOriginalMoney(amount, code) {
+      try {
+        return new Intl.NumberFormat(undefined, { style: 'currency', currency: code || 'USD', maximumFractionDigits: 2 }).format(Number(amount || 0));
+      } catch {
+        return `${Number(amount || 0).toFixed(2)} ${code || 'USD'}`;
+      }
+    }
+
+    async function fetchUsdConversion(fromCurrency) {
+      const from = String(fromCurrency || 'USD').toUpperCase();
+      if (from === 'USD') {
+        return { rate: 1, source: 'Direct USD entry', fetchedAt: new Date().toISOString() };
+      }
+      const url = `https://api.frankfurter.dev/v2/rates?base=${encodeURIComponent(from)}&quotes=USD`;
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) throw new Error('Unable to fetch exchange rate.');
+      const data = await response.json();
+      const rate = Number(data?.rates?.USD);
+      if (!(rate > 0)) throw new Error('USD conversion rate unavailable.');
+      return {
+        rate,
+        source: 'Frankfurter API',
+        fetchedAt: data?.date || new Date().toISOString()
+      };
     }
 
     const els = {
@@ -718,6 +775,8 @@
       memberBalances: document.getElementById('memberBalances'),
       settlementList: document.getElementById('settlementList'),
       paidBy: document.getElementById('paidBy'),
+      expenseCurrency: document.getElementById('expenseCurrency'),
+      fxPreview: document.getElementById('fxPreview'),
       splitMembers: document.getElementById('splitMembers'),
       expenseSearch: document.getElementById('expenseSearch'),
       totalAmount: document.getElementById('totalAmount'),
@@ -786,7 +845,7 @@
           subtitle: window.EXPENSE_DASHBOARD_SUBTITLE || 'Track group spending, balances, and settlements in real time.',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
-          currency
+          currency: 'USD'
         });
       }
     }
@@ -795,7 +854,7 @@
       els.groupCodeChip.textContent = `Group ID: ${dashboardId}`;
       if (dashboard?.title) els.dashboardTitle.textContent = dashboard.title;
       if (dashboard?.subtitle) els.dashboardSubtitle.textContent = dashboard.subtitle;
-      currency = dashboard?.currency || currency || 'EUR';
+      currency = 'USD';
       els.currencySelect.value = currency;
     }
 
@@ -849,7 +908,7 @@
       const balances = Object.fromEntries(members.map(m => [m.id, 0]));
 
       expenses.forEach(exp => {
-        const amount = Number(exp.amount || 0);
+        const amount = getStoredUsdAmount(exp);
         if (!amount || !exp.paidBy || !Array.isArray(exp.splitAmong) || !exp.splitAmong.length) return;
         balances[exp.paidBy] = (balances[exp.paidBy] || 0) + amount;
         const share = amount / exp.splitAmong.length;
@@ -878,12 +937,12 @@
     }
 
     function renderStats() {
-      const total = expenses.reduce((sum, x) => sum + Number(x.amount || 0), 0);
-      const largest = expenses.reduce((best, x) => Number(x.amount || 0) > Number(best?.amount || 0) ? x : best, null);
+      const total = expenses.reduce((sum, x) => sum + getStoredUsdAmount(x), 0);
+      const largest = expenses.reduce((best, x) => getStoredUsdAmount(x) > getStoredUsdAmount(best) ? x : best, null);
       els.totalAmount.textContent = fmtMoney(total || 0);
       els.expenseCount.textContent = `${expenses.length} transaction${expenses.length === 1 ? '' : 's'}`;
       els.memberCount.textContent = String(members.length);
-      els.largestExpense.textContent = fmtMoney(Number(largest?.amount || 0));
+      els.largestExpense.textContent = fmtMoney(getStoredUsdAmount(largest));
       els.largestExpenseName.textContent = largest ? largest.title || 'Untitled expense' : 'No expenses yet';
       els.avgExpense.textContent = fmtMoney(expenses.length ? total / expenses.length : 0);
     }
@@ -943,6 +1002,12 @@
         const payer = memberMap[exp.paidBy] || 'Unknown';
         const splitNames = (exp.splitAmong || []).map(id => memberMap[id] || 'Unknown').join(', ');
         const splitLabel = exp.splitMode === 'self' ? 'Just payer' : exp.splitMode === 'everyone' ? 'Everyone' : (splitNames || '—');
+        const originalLabel = fmtOriginalMoney(exp.originalAmount ?? exp.amount, exp.originalCurrency || exp.currency || 'USD');
+        const convertedLabel = fmtMoney(getStoredUsdAmount(exp));
+        const fxLine = exp.originalCurrency && (exp.originalCurrency !== 'USD' || typeof exp.usdRate === 'number')
+          ? `Original: ${safeText(originalLabel)} • Stored: ${safeText(convertedLabel)}`
+          : `Stored: ${safeText(convertedLabel)}`;
+        const fxMeta = exp.usdRate ? `Rate used: 1 ${safeText(exp.originalCurrency || 'USD')} = ${Number(exp.usdRate).toFixed(6)} USD • ${safeText(exp.fxSource || '')} ${safeText(exp.fxFetchedAt || '')}` : '';
         return `
           <div class="expense-item">
             <div class="expense-row">
@@ -950,8 +1015,10 @@
                 <div class="name">${safeText(exp.title || 'Untitled expense')}</div>
                 <div class="sub">Paid by ${safeText(payer)} • ${formatDate(exp.date)} • Split: ${safeText(splitLabel)}</div>
               </div>
-              <div class="amount">${fmtMoney(Number(exp.amount || 0))}</div>
+              <div class="amount">${convertedLabel}</div>
             </div>
+            <div class="meta">${fxLine}</div>
+            ${fxMeta ? `<div class="meta">${fxMeta}</div>` : ''}
             ${exp.note ? `<div class="meta">${safeText(exp.note)}</div>` : ''}
             <div class="expense-row" style="margin-top:12px;">
               <div class="tiny">Added ${exp.createdByName ? 'by ' + safeText(exp.createdByName) : ''}</div>
@@ -1039,7 +1106,7 @@
         input.value = '';
         await setDoc(dashboardRef, { updatedAt: serverTimestamp(), currency }, { merge: true });
       } catch (err) {
-        alert(err?.message || 'Unable to add member. Check Firebase Auth and Firestore rules.');
+        alert((err?.message || 'Unable to add member.') + ' If you are signed in, publish Firestore rules to allow authenticated writes.');
       }
     }
 
@@ -1068,7 +1135,7 @@
           note,
           splitAmong,
           splitMode,
-          currency,
+          currency: 'USD',
           createdAt: serverTimestamp(),
           createdBy: currentUser?.uid || null,
           createdByName: currentUser?.email || payerName
@@ -1081,7 +1148,7 @@
         setSplitMode('everyone');
         closeModal('expenseModal');
       } catch (err) {
-        alert(err?.message || 'Unable to save expense.');
+        alert((err?.message || 'Unable to save expense.') + ' If you are signed in, publish Firestore rules to allow authenticated writes.');
       }
     }
 
@@ -1112,26 +1179,19 @@
     document.getElementById('authSubmitBtn').addEventListener('click', signIn);
     els.expenseSearch.addEventListener('input', renderExpenses);
     els.paidBy.addEventListener('change', () => renderSplitMembers());
-    els.currencySelect.addEventListener('change', async () => {
-      const nextCurrency = els.currencySelect.value;
-      if (nextCurrency === currency) return;
-      if (!requireAuth(() => {})) {
-        els.currencySelect.value = currency;
-        return;
-      }
-      try {
-        currency = nextCurrency;
-        await setDoc(dashboardRef, { currency, updatedAt: serverTimestamp() }, { merge: true });
-        renderAll();
-      } catch (err) {
-        els.currencySelect.value = currency;
-        alert(err?.message || 'Unable to update currency.');
-      }
+    els.currencySelect.addEventListener('change', () => {
+      els.currencySelect.value = 'USD';
+      currency = 'USD';
+    });
+    els.expenseCurrency.addEventListener('change', () => {
+      els.fxPreview.value = `USD (converted from ${els.expenseCurrency.value} on save)`;
     });
     document.getElementById('memberName').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') addMember();
     });
     document.getElementById('expenseDate').value = new Date().toISOString().slice(0,10);
+    document.getElementById('expenseCurrency').value = 'USD';
+    els.fxPreview.value = 'USD (converted from USD on save)';
 
     els.shareBtn.addEventListener('click', async () => {
       const link = `${location.origin}${location.pathname}?group=${encodeURIComponent(dashboardId)}`;
