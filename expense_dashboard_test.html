@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Expense Dashboard - USD Converted</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<style>
+body {font-family: Arial; background:#0f172a; color:white; padding:15px;}
+h2 {color:gold;}
+button {padding:10px 16px; border-radius:10px; border:none; cursor:pointer;}
+.primary {background:gold; color:black;}
+.secondary {background:#1e293b; color:white;}
+input, select {padding:8px; border-radius:8px; border:none; margin:5px;}
+</style>
+</head>
+
+<body>
+
+<h2>💰 Expense Dashboard</h2>
+
+<div>
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button class="primary" onclick="login()">Sign In</button>
+  <button class="secondary" onclick="logout()">Sign Out</button>
+</div>
+
+<hr>
+
+<h3>Add Expense</h3>
+
+<input id="title" placeholder="Title"><br>
+<input id="amount" placeholder="Amount" type="number"><br>
+
+<select id="currency">
+  <option value="USD">USD</option>
+  <option value="EUR">EUR</option>
+  <option value="INR">INR</option>
+</select><br>
+
+<button class="primary" onclick="saveExpense()">Save Expense</button>
+
+<hr>
+
+<h3>Expenses (USD)</h3>
+<ul id="list"></ul>
+
+<script>
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDA3vgzzLHyg2d0Xv3XnKU2gSjDyGBvWr0",
+  authDomain: "threesisterseuropetrip.firebaseapp.com",
+  projectId: "threesisterseuropetrip"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+function login(){
+  const email = document.getElementById('email').value;
+  const pass = document.getElementById('password').value;
+  auth.signInWithEmailAndPassword(email, pass)
+    .catch(e=>alert(e.message));
+}
+
+function logout(){
+  auth.signOut();
+}
+
+async function getUsdRate(cur){
+  if(cur==="USD") return 1;
+
+  const urls = [
+    `https://open.er-api.com/v6/latest/${cur}`,
+    `https://api.frankfurter.dev/v1/latest?base=${cur}&symbols=USD`
+  ];
+
+  for(const url of urls){
+    try{
+      let r = await fetch(url);
+      let d = await r.json();
+
+      if(d.rates && d.rates.USD){
+        return d.rates.USD;
+      }
+    }catch(e){}
+  }
+
+  throw "FX_FAIL";
+}
+
+async function saveExpense(){
+  if(!auth.currentUser){
+    alert("Login required");
+    return;
+  }
+
+  let title = document.getElementById('title').value;
+  let amount = parseFloat(document.getElementById('amount').value);
+  let currency = document.getElementById('currency').value;
+
+  let rate;
+  try{
+    rate = await getUsdRate(currency);
+  }catch{
+    alert("USD conversion rate unavailable");
+    return;
+  }
+
+  let usd = amount * rate;
+
+  await db.collection("expenses").add({
+    title,
+    originalAmount: amount,
+    currency,
+    usdAmount: usd,
+    created: new Date()
+  });
+
+  load();
+}
+
+async function load(){
+  let snap = await db.collection("expenses").get();
+  let ul = document.getElementById("list");
+  ul.innerHTML="";
+  snap.forEach(doc=>{
+    let d = doc.data();
+    let li = document.createElement("li");
+    li.innerText = d.title + " - $" + d.usdAmount.toFixed(2);
+    ul.appendChild(li);
+  });
+}
+
+load();
+
+</script>
+
+</body>
+</html>
