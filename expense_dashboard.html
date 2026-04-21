@@ -339,15 +339,12 @@
     .modal.open { display: grid; }
 
     .modal-card {
-      width: min(500px, 92vw);
-      max-height: 88vh;
+      width: min(560px, 96vw);
       background: linear-gradient(180deg, #121a31 0%, #0d1427 100%);
       border: 1px solid var(--line);
       border-radius: 24px;
       box-shadow: var(--shadow);
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
     }
 
     .modal-head, .modal-body, .modal-actions {
@@ -369,39 +366,6 @@
       justify-content: flex-end;
       gap: 10px;
       border-top: 1px solid var(--line);
-      position: sticky;
-      bottom: 0;
-      z-index: 2;
-      background: linear-gradient(180deg, #0f162a 0%, #0d1427 100%);
-    }
-
-    .modal-body {
-      overflow-y: auto;
-      max-height: calc(88vh - 140px);
-    }
-
-    .modal-head {
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      background: linear-gradient(180deg, #121a31 0%, #10182d 100%);
-    }
-
-    #paidBy,
-    #currencySelect,
-    #expenseCurrency,
-    select {
-      background: rgba(255,255,255,0.10);
-      color: var(--text);
-      border: 1px solid rgba(255,255,255,0.16);
-    }
-
-    #paidBy option,
-    #currencySelect option,
-    #expenseCurrency option,
-    select option {
-      background: #111a2f;
-      color: #ecf2ff;
     }
 
     .tiny {
@@ -434,13 +398,6 @@
       .form-grid, .form-grid-3, .checkbox-grid, .stats { grid-template-columns: 1fr; }
       .hero { padding: 18px; border-radius: 22px; }
       .panel-body, .panel-head { padding: 14px; }
-      .modal-card {
-        width: min(460px, 94vw);
-        max-height: 90vh;
-      }
-      .modal-body {
-        max-height: calc(90vh - 136px);
-      }
     }
   </style>
 </head>
@@ -545,7 +502,7 @@
           <div class="modal-title" id="expenseModalTitle">Add Expense</div>
           <div class="tiny">Signed-in users can add new expenses to this shared dashboard.</div>
         </div>
-        <button class="btn secondary small" data-close="expenseModal">Close</button>
+        <button class="btn ghost small" data-close="expenseModal">Close</button>
       </div>
       <div class="modal-body">
         <div class="form-grid">
@@ -614,7 +571,7 @@
           <div class="modal-title">Manage Members</div>
           <div class="tiny">Create the people who share expenses in this dashboard.</div>
         </div>
-        <button class="btn secondary small" data-close="membersModal">Close</button>
+        <button class="btn ghost small" data-close="membersModal">Close</button>
       </div>
       <div class="modal-body">
         <div class="form-grid-3">
@@ -642,7 +599,7 @@
           <div class="modal-title" id="authTitle">Sign in to update expenses</div>
           <div class="tiny" id="authMessage">Enter the Firebase email and password you created for this dashboard.</div>
         </div>
-        <button class="btn secondary small" data-close="authModal">Close</button>
+        <button class="btn ghost small" data-close="authModal">Close</button>
       </div>
       <div class="modal-body">
         <div class="field">
@@ -662,6 +619,16 @@
     </div>
   </div>
 
+  <script>
+    window.FIREBASE_CONFIG_FALLBACK = {
+      apiKey: "AIzaSyDA3vgzzLHyg2d0Xv3XnKU2gSjDyGBvWr0",
+      authDomain: "threesisterseuropetrip.firebaseapp.com",
+      projectId: "threesisterseuropetrip",
+      storageBucket: "threesisterseuropetrip.firebasestorage.app",
+      messagingSenderId: "421699331524",
+      appId: "1:421699331524:web:abc123"
+    };
+  </script>
   <script src="./firebase-config.js"></script>
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
@@ -686,7 +653,9 @@
       serverTimestamp
     } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-    const config = window.FIREBASE_CONFIG;
+    const liveConfig = window.FIREBASE_CONFIG || {};
+    const fallbackConfig = window.FIREBASE_CONFIG_FALLBACK || {};
+    const config = (liveConfig.apiKey && /^AIza[0-9A-Za-z_-]{20,}$/.test(String(liveConfig.apiKey))) ? liveConfig : fallbackConfig;
     if (!config || !config.apiKey) {
       document.body.innerHTML = '<div style="padding:24px;color:white;font-family:Arial">Missing Firebase config. Update <b>firebase-config.js</b> first.</div>';
       throw new Error('Missing Firebase config');
@@ -701,7 +670,7 @@
     const membersRef = collection(db, 'expenseDashboards', dashboardId, 'members');
     const expensesRef = collection(db, 'expenseDashboards', dashboardId, 'expenses');
 
-    let currency = 'USD';
+    let currency = window.EXPENSE_CURRENCY || 'EUR';
 
     function moneyFormatter() {
       return new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 2 });
@@ -730,14 +699,14 @@
         return { rate: 1, source: 'Direct USD entry', fetchedAt: new Date().toISOString() };
       }
 
-      const endpoints = [
+      const urls = [
         `https://open.er-api.com/v6/latest/${encodeURIComponent(from)}`,
-        `https://api.frankfurter.app/latest?from=${encodeURIComponent(from)}&to=USD`,
-        `https://api.frankfurter.dev/v1/latest?base=${encodeURIComponent(from)}&symbols=USD`
+        `https://api.frankfurter.dev/v1/latest?base=${encodeURIComponent(from)}&symbols=USD`,
+        `https://api.frankfurter.dev/v2/rate/${encodeURIComponent(from)}/USD`
       ];
 
       let lastError = 'USD conversion rate unavailable.';
-      for (const url of endpoints) {
+      for (const url of urls) {
         try {
           const response = await fetch(url, { cache: 'no-store' });
           if (!response.ok) {
@@ -757,8 +726,16 @@
           if (data && data.rates && typeof data.rates.USD === 'number') {
             return {
               rate: Number(data.rates.USD),
-              source: data.base ? 'Frankfurter' : 'FX API',
+              source: 'Frankfurter v1',
               fetchedAt: data.date || new Date().toISOString()
+            };
+          }
+
+          if (data && typeof data.rate === 'number') {
+            return {
+              rate: Number(data.rate),
+              source: 'Frankfurter v2',
+              fetchedAt: new Date().toISOString()
             };
           }
         } catch (err) {
@@ -855,7 +832,7 @@
           subtitle: window.EXPENSE_DASHBOARD_SUBTITLE || 'Track group spending, balances, and settlements in real time.',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
-          currency: 'USD'
+          currency
         });
       }
     }
@@ -1178,12 +1155,10 @@
         setSplitMode('everyone');
         closeModal('expenseModal');
       } catch (err) {
-        console.error('Firestore save failed:', err);
-        if (err?.code === 'permission-denied' || /permission/i.test(err?.message || '')) {
-          alert('Signed in, but Firestore blocked the write. Publish Firestore rules to allow authenticated writes.');
-        } else {
-          alert(err?.message || 'Unable to save expense.');
-        }
+        const message = err?.code === 'permission-denied'
+          ? 'Signed in, but Firestore blocked the write. Publish Firestore rules to allow authenticated writes.'
+          : (err?.message || 'Unable to save expense.');
+        alert(message);
       }
     }
 
