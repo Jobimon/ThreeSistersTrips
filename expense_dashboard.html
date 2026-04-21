@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shared Expense Dashboard</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: rgba(20, 28, 53, 0.82);
+      --panel-2: rgba(16, 23, 44, 0.92);
+      --text: #ecf2ff;
+      --muted: #aeb9d6;
+      --line: rgba(255,255,255,0.08);
+      --accent: #d4af37;
+      --accent-2: #7cc6ff;
+      --good: #6ee7b7;
+      --bad: #fca5a5;
+      --warn: #fde68a;
+      --shadow: 0 16px 40px rgba(0,0,0,0.32);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(124,198,255,0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(212,175,55,0.16), transparent 24%),
+        linear-gradient(180deg, #09101f 0%, #0b1020 55%, #0b0f19 100%);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(22,31,57,0.95), rgba(12,17,33,0.92));
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 1.35fr 0.8fr;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      letter-spacing: 0.2px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 1rem;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .chip {
+      padding: 9px 14px;
+      border: 1px solid rgba(212,175,55,0.2);
+      background: rgba(255,255,255,0.04);
+      border-radius: 999px;
+      color: #f8e7a4;
+      font-size: 0.92rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      justify-content: center;
+      align-items: stretch;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 14px;
+      padding: 13px 16px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.96rem;
+      transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn.primary {
+      background: linear-gradient(135deg, var(--accent), #f3d76c);
+      color: #221a06;
+      box-shadow: 0 10px 24px rgba(212,175,55,0.22);
+    }
+    .btn.secondary {
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+    .btn.ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line);
+    }
+    .btn.small {
+      padding: 8px 12px;
+      font-size: 0.88rem;
+      border-radius: 12px;
+    }
+
+    .top-note {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 18px 0;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .auth-status, .share-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px 14px;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .panel-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+    }
+
+    .panel-body { padding: 18px; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .stat {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 18px;
+      min-height: 110px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 800;
+      letter-spacing: 0.2px;
+    }
+
+    .stat-sub {
+      margin-top: 10px;
+      color: #d4def8;
+      font-size: 0.9rem;
+    }
+
+    .member-list, .expense-list, .settlement-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .member-item, .expense-item, .settlement-item {
+      background: rgba(255,255,255,0.035);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .member-row, .expense-row, .settlement-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .name {
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .sub {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 4px;
+      line-height: 1.45;
+    }
+
+    .amount { font-weight: 800; }
+    .positive { color: var(--good); }
+    .negative { color: var(--bad); }
+    .neutral { color: var(--warn); }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      padding: 12px 13px;
+      font: inherit;
+      outline: none;
+    }
+    input::placeholder, textarea::placeholder { color: #95a2c5; }
+    textarea { min-height: 90px; resize: vertical; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .form-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .field { display: grid; gap: 7px; }
+    .field label {
+      color: #d8e2fd;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .pill-toggle {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .pill-toggle button {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .pill-toggle button.active {
+      background: rgba(212,175,55,0.14);
+      color: #ffe89b;
+      border-color: rgba(212,175,55,0.35);
+    }
+
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .check-card {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+
+    .empty {
+      color: var(--muted);
+      text-align: center;
+      padding: 24px 10px;
+      border: 1px dashed rgba(255,255,255,0.14);
+      border-radius: 16px;
+    }
+
+    .meta {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      background: rgba(4, 8, 18, 0.7);
+      z-index: 1000;
+      padding: 18px;
+    }
+
+    .modal.open { display: grid; }
+
+    .modal-card {
+      width: min(560px, 96vw);
+      background: linear-gradient(180deg, #121a31 0%, #0d1427 100%);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .modal-head, .modal-body, .modal-actions {
+      padding: 18px;
+    }
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+    }
+    .modal-title {
+      font-size: 1.12rem;
+      font-weight: 800;
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      border-top: 1px solid var(--line);
+    }
+
+    .tiny {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .footer-note {
+      margin-top: 20px;
+      color: #9eabca;
+      text-align: center;
+      font-size: 0.82rem;
+    }
+
+    .danger-link {
+      color: #ffb6b6;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    @media (max-width: 1024px) {
+      .hero, .grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 700px) {
+      .container { padding: 14px; }
+      .form-grid, .form-grid-3, .checkbox-grid, .stats { grid-template-columns: 1fr; }
+      .hero { padding: 18px; border-radius: 22px; }
+      .panel-body, .panel-head { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <div>
+        <h1 id="dashboardTitle">Shared Expense Dashboard</h1>
+        <p id="dashboardSubtitle">Track trip and group spending in one place. Add expenses, split them across members, and instantly see who owes whom.</p>
+        <div class="chip-row">
+          <div class="chip" id="groupCodeChip">Group ID: loading...</div>
+          <div class="chip">Firebase Sync</div>
+          <div class="chip">Live Balances</div>
+          <div class="chip">Login to Edit</div>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <button class="btn primary" id="addExpenseBtn">+ Add Expense</button>
+        <button class="btn secondary" id="manageMembersBtn">Manage Members</button>
+        <button class="btn secondary" id="signInBtn">Sign In</button>
+        <button class="btn ghost" id="shareBtn">Copy Share Link</button>
+      </div>
+    </section>
+
+    <div class="top-note">
+      <div class="auth-status" id="authStatus">Viewing mode. Sign in to add, edit, or delete expenses.</div>
+      <div class="share-box" id="lastUpdated">Connecting to Firebase...</div>
+    </div>
+
+    <section class="stats" id="statsGrid">
+      <div class="stat">
+        <div class="stat-label">Total Expenses</div>
+        <div class="stat-value" id="totalAmount">$0.00</div>
+        <div class="stat-sub" id="expenseCount">0 transactions</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Members</div>
+        <div class="stat-value" id="memberCount">0</div>
+        <div class="stat-sub">People in this dashboard</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Largest Expense</div>
+        <div class="stat-value" id="largestExpense">$0.00</div>
+        <div class="stat-sub" id="largestExpenseName">No expenses yet</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Average Per Expense</div>
+        <div class="stat-value" id="avgExpense">$0.00</div>
+        <div class="stat-sub">Based on all recorded items</div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Expenses</div>
+          <div class="toolbar">
+            <input id="expenseSearch" type="search" placeholder="Search title, payer, note..." style="width: 220px;" />
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="expense-list" id="expenseList"></div>
+        </div>
+      </div>
+
+      <div style="display:grid; gap:18px;">
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Balances</div>
+          </div>
+          <div class="panel-body">
+            <div class="member-list" id="memberBalances"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Suggested Settlements</div>
+          </div>
+          <div class="panel-body">
+            <div class="settlement-list" id="settlementList"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-note">Created for shared group expense tracking with Firebase live sync.</div>
+  </div>
+
+  <div class="modal" id="expenseModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title" id="expenseModalTitle">Add Expense</div>
+          <div class="tiny">Signed-in users can add new expenses to this shared dashboard.</div>
+        </div>
+        <button class="btn ghost small" data-close="expenseModal">Close</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="field">
+            <label for="expenseTitle">Expense title</label>
+            <input id="expenseTitle" placeholder="Dinner, Parking, Hotel, Tickets..." />
+          </div>
+          <div class="field">
+            <label for="expenseAmount">Amount</label>
+            <input id="expenseAmount" type="number" min="0" step="0.01" placeholder="0.00" />
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top:12px;">
+          <div class="field">
+            <label for="paidBy">Paid by</label>
+            <select id="paidBy"></select>
+          </div>
+          <div class="field">
+            <label for="expenseDate">Date</label>
+            <input id="expenseDate" type="date" />
+          </div>
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <label>Split type</label>
+          <div class="pill-toggle">
+            <button type="button" class="active" data-split-mode="equal">Equal split</button>
+            <button type="button" data-split-mode="custom">Custom people</button>
+          </div>
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <label>Split among</label>
+          <div class="checkbox-grid" id="splitMembers"></div>
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <label for="expenseNote">Notes</label>
+          <textarea id="expenseNote" placeholder="Optional note, place, booking detail, etc."></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn ghost" data-close="expenseModal">Cancel</button>
+        <button class="btn primary" id="saveExpenseBtn">Save Expense</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="membersModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">Manage Members</div>
+          <div class="tiny">Create the people who share expenses in this dashboard.</div>
+        </div>
+        <button class="btn ghost small" data-close="membersModal">Close</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid-3">
+          <div class="field" style="grid-column: span 2;">
+            <label for="memberName">Member name</label>
+            <input id="memberName" placeholder="Jobi, Simi, Sister 1..." />
+          </div>
+          <div class="field">
+            <label>&nbsp;</label>
+            <button class="btn primary" id="addMemberBtn">Add Member</button>
+          </div>
+        </div>
+        <div class="member-list" id="memberManageList" style="margin-top:16px;"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn ghost" data-close="membersModal">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="authModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title" id="authTitle">Sign in to update expenses</div>
+          <div class="tiny" id="authMessage">Enter the Firebase email and password you created for this dashboard.</div>
+        </div>
+        <button class="btn ghost small" data-close="authModal">Close</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label for="authEmail">Email</label>
+          <input id="authEmail" type="email" placeholder="name@example.com" />
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <label for="authPassword">Password</label>
+          <input id="authPassword" type="password" placeholder="Your password" />
+        </div>
+        <div class="tiny" id="authError" style="margin-top:12px;color:#ffb6b6;"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn ghost" data-close="authModal">Cancel</button>
+        <button class="btn primary" id="authSubmitBtn">Sign In</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./firebase-config.js"></script>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      getDoc,
+      updateDoc,
+      deleteDoc,
+      collection,
+      addDoc,
+      onSnapshot,
+      query,
+      orderBy,
+      serverTimestamp
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    const config = window.FIREBASE_CONFIG;
+    if (!config || !config.apiKey) {
+      document.body.innerHTML = '<div style="padding:24px;color:white;font-family:Arial">Missing Firebase config. Update <b>firebase-config.js</b> first.</div>';
+      throw new Error('Missing Firebase config');
+    }
+
+    const app = initializeApp(config);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const dashboardId = new URLSearchParams(window.location.search).get('group') || window.EXPENSE_DASHBOARD_ID || 'shared-expense-dashboard';
+    const dashboardRef = doc(db, 'expenseDashboards', dashboardId);
+    const membersRef = collection(db, 'expenseDashboards', dashboardId, 'members');
+    const expensesRef = collection(db, 'expenseDashboards', dashboardId, 'expenses');
+
+    const currency = window.EXPENSE_CURRENCY || 'USD';
+    const money = new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 2 });
+
+    const els = {
+      dashboardTitle: document.getElementById('dashboardTitle'),
+      dashboardSubtitle: document.getElementById('dashboardSubtitle'),
+      groupCodeChip: document.getElementById('groupCodeChip'),
+      authStatus: document.getElementById('authStatus'),
+      lastUpdated: document.getElementById('lastUpdated'),
+      signInBtn: document.getElementById('signInBtn'),
+      shareBtn: document.getElementById('shareBtn'),
+      addExpenseBtn: document.getElementById('addExpenseBtn'),
+      manageMembersBtn: document.getElementById('manageMembersBtn'),
+      expenseModal: document.getElementById('expenseModal'),
+      membersModal: document.getElementById('membersModal'),
+      authModal: document.getElementById('authModal'),
+      expenseList: document.getElementById('expenseList'),
+      memberBalances: document.getElementById('memberBalances'),
+      settlementList: document.getElementById('settlementList'),
+      paidBy: document.getElementById('paidBy'),
+      splitMembers: document.getElementById('splitMembers'),
+      expenseSearch: document.getElementById('expenseSearch'),
+      totalAmount: document.getElementById('totalAmount'),
+      expenseCount: document.getElementById('expenseCount'),
+      memberCount: document.getElementById('memberCount'),
+      largestExpense: document.getElementById('largestExpense'),
+      largestExpenseName: document.getElementById('largestExpenseName'),
+      avgExpense: document.getElementById('avgExpense'),
+      memberManageList: document.getElementById('memberManageList'),
+      authError: document.getElementById('authError')
+    };
+
+    let currentUser = null;
+    let dashboard = null;
+    let members = [];
+    let expenses = [];
+    let splitMode = 'equal';
+
+    const openModal = (id) => document.getElementById(id).classList.add('open');
+    const closeModal = (id) => document.getElementById(id).classList.remove('open');
+
+    document.querySelectorAll('[data-close]').forEach(btn => {
+      btn.addEventListener('click', () => closeModal(btn.dataset.close));
+    });
+
+    document.querySelectorAll('[data-split-mode]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        splitMode = btn.dataset.splitMode;
+        document.querySelectorAll('[data-split-mode]').forEach(x => x.classList.toggle('active', x === btn));
+        renderSplitMembers();
+      });
+    });
+
+    function requireAuth(action) {
+      if (currentUser) {
+        action();
+        return true;
+      }
+      openModal('authModal');
+      return false;
+    }
+
+    function safeText(s) {
+      return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return 'No date';
+      const d = new Date(dateStr + 'T00:00:00');
+      return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    function initials(name) {
+      return String(name || '?').split(' ').filter(Boolean).slice(0,2).map(x => x[0].toUpperCase()).join('');
+    }
+
+    async function ensureDashboard() {
+      const snap = await getDoc(dashboardRef);
+      if (!snap.exists()) {
+        await setDoc(dashboardRef, {
+          title: window.EXPENSE_DASHBOARD_TITLE || 'Shared Expense Dashboard',
+          subtitle: window.EXPENSE_DASHBOARD_SUBTITLE || 'Track group spending, balances, and settlements in real time.',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          currency
+        });
+      }
+    }
+
+    function setHeader() {
+      els.groupCodeChip.textContent = `Group ID: ${dashboardId}`;
+      if (dashboard?.title) els.dashboardTitle.textContent = dashboard.title;
+      if (dashboard?.subtitle) els.dashboardSubtitle.textContent = dashboard.subtitle;
+    }
+
+    function renderPaidByOptions() {
+      els.paidBy.innerHTML = members.length
+        ? members.map(m => `<option value="${m.id}">${safeText(m.name)}</option>`).join('')
+        : '<option value="">No members yet</option>';
+    }
+
+    function renderSplitMembers() {
+      if (!members.length) {
+        els.splitMembers.innerHTML = '<div class="empty">Add members first.</div>';
+        return;
+      }
+      els.splitMembers.innerHTML = members.map((m, idx) => `
+        <label class="check-card">
+          <input type="checkbox" class="split-person" value="${m.id}" ${splitMode === 'equal' ? 'checked' : idx < Math.min(2, members.length) ? 'checked' : ''} />
+          <div>
+            <div class="name">${safeText(m.name)}</div>
+            <div class="tiny">${initials(m.name)}</div>
+          </div>
+        </label>
+      `).join('');
+
+      if (splitMode === 'equal') {
+        document.querySelectorAll('.split-person').forEach(cb => cb.disabled = false);
+      }
+    }
+
+    function computeBalances() {
+      const balances = Object.fromEntries(members.map(m => [m.id, 0]));
+
+      expenses.forEach(exp => {
+        const amount = Number(exp.amount || 0);
+        if (!amount || !exp.paidBy || !Array.isArray(exp.splitAmong) || !exp.splitAmong.length) return;
+        balances[exp.paidBy] = (balances[exp.paidBy] || 0) + amount;
+        const share = amount / exp.splitAmong.length;
+        exp.splitAmong.forEach(id => {
+          balances[id] = (balances[id] || 0) - share;
+        });
+      });
+
+      return members.map(m => ({ ...m, balance: +(balances[m.id] || 0).toFixed(2) }));
+    }
+
+    function computeSettlements(balances) {
+      const creditors = balances.filter(x => x.balance > 0.009).map(x => ({ ...x }));
+      const debtors = balances.filter(x => x.balance < -0.009).map(x => ({ ...x, balance: Math.abs(x.balance) }));
+      const out = [];
+      let i = 0, j = 0;
+      while (i < debtors.length && j < creditors.length) {
+        const amount = Math.min(debtors[i].balance, creditors[j].balance);
+        out.push({ from: debtors[i].name, to: creditors[j].name, amount: +amount.toFixed(2) });
+        debtors[i].balance = +(debtors[i].balance - amount).toFixed(2);
+        creditors[j].balance = +(creditors[j].balance - amount).toFixed(2);
+        if (debtors[i].balance <= 0.009) i++;
+        if (creditors[j].balance <= 0.009) j++;
+      }
+      return out;
+    }
+
+    function renderStats() {
+      const total = expenses.reduce((sum, x) => sum + Number(x.amount || 0), 0);
+      const largest = expenses.reduce((best, x) => Number(x.amount || 0) > Number(best?.amount || 0) ? x : best, null);
+      els.totalAmount.textContent = money.format(total || 0);
+      els.expenseCount.textContent = `${expenses.length} transaction${expenses.length === 1 ? '' : 's'}`;
+      els.memberCount.textContent = String(members.length);
+      els.largestExpense.textContent = money.format(Number(largest?.amount || 0));
+      els.largestExpenseName.textContent = largest ? largest.title || 'Untitled expense' : 'No expenses yet';
+      els.avgExpense.textContent = money.format(expenses.length ? total / expenses.length : 0);
+    }
+
+    function renderBalancesAndSettlements() {
+      const balances = computeBalances();
+      if (!balances.length) {
+        els.memberBalances.innerHTML = '<div class="empty">No members yet.</div>';
+        els.settlementList.innerHTML = '<div class="empty">Add members and expenses to see settlements.</div>';
+        return;
+      }
+
+      els.memberBalances.innerHTML = balances.map(m => `
+        <div class="member-item">
+          <div class="member-row">
+            <div>
+              <div class="name">${safeText(m.name)}</div>
+              <div class="sub">${m.balance > 0.009 ? 'Should receive' : m.balance < -0.009 ? 'Owes' : 'Settled up'}</div>
+            </div>
+            <div class="amount ${m.balance > 0.009 ? 'positive' : m.balance < -0.009 ? 'negative' : 'neutral'}">
+              ${m.balance < 0 ? '-' : ''}${money.format(Math.abs(m.balance))}
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      const settlements = computeSettlements(balances);
+      els.settlementList.innerHTML = settlements.length
+        ? settlements.map(s => `
+            <div class="settlement-item">
+              <div class="settlement-row">
+                <div>
+                  <div class="name">${safeText(s.from)} → ${safeText(s.to)}</div>
+                  <div class="sub">Suggested settlement</div>
+                </div>
+                <div class="amount positive">${money.format(s.amount)}</div>
+              </div>
+            </div>
+          `).join('')
+        : '<div class="empty">Everyone is settled or not enough data yet.</div>';
+    }
+
+    function renderExpenses() {
+      const q = els.expenseSearch.value.trim().toLowerCase();
+      const memberMap = Object.fromEntries(members.map(m => [m.id, m.name]));
+      const filtered = expenses.filter(exp => {
+        const hay = [exp.title, exp.note, memberMap[exp.paidBy], formatDate(exp.date)].join(' ').toLowerCase();
+        return hay.includes(q);
+      });
+
+      if (!filtered.length) {
+        els.expenseList.innerHTML = `<div class="empty">${expenses.length ? 'No expenses match your search.' : 'No expenses yet. Add your first shared cost.'}</div>`;
+        return;
+      }
+
+      els.expenseList.innerHTML = filtered.map(exp => {
+        const payer = memberMap[exp.paidBy] || 'Unknown';
+        const splitNames = (exp.splitAmong || []).map(id => memberMap[id] || 'Unknown').join(', ');
+        return `
+          <div class="expense-item">
+            <div class="expense-row">
+              <div>
+                <div class="name">${safeText(exp.title || 'Untitled expense')}</div>
+                <div class="sub">Paid by ${safeText(payer)} • ${formatDate(exp.date)} • Split among: ${safeText(splitNames || '—')}</div>
+              </div>
+              <div class="amount">${money.format(Number(exp.amount || 0))}</div>
+            </div>
+            ${exp.note ? `<div class="meta">${safeText(exp.note)}</div>` : ''}
+            <div class="expense-row" style="margin-top:12px;">
+              <div class="tiny">Added ${exp.createdByName ? 'by ' + safeText(exp.createdByName) : ''}</div>
+              ${currentUser ? `<span class="danger-link" data-delete-expense="${exp.id}">Delete</span>` : '<span class="tiny">Sign in to manage</span>'}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.querySelectorAll('[data-delete-expense]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!requireAuth(() => {})) return;
+          if (!confirm('Delete this expense?')) return;
+          await deleteDoc(doc(db, 'expenseDashboards', dashboardId, 'expenses', btn.dataset.deleteExpense));
+          await updateDoc(dashboardRef, { updatedAt: serverTimestamp() });
+        });
+      });
+    }
+
+    function renderMemberManageList() {
+      if (!members.length) {
+        els.memberManageList.innerHTML = '<div class="empty">No members yet.</div>';
+        return;
+      }
+      els.memberManageList.innerHTML = members.map(m => `
+        <div class="member-item">
+          <div class="member-row">
+            <div>
+              <div class="name">${safeText(m.name)}</div>
+              <div class="sub">ID: ${safeText(m.id)}</div>
+            </div>
+            ${currentUser ? `<span class="danger-link" data-delete-member="${m.id}">Delete</span>` : ''}
+          </div>
+        </div>
+      `).join('');
+
+      document.querySelectorAll('[data-delete-member]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!requireAuth(() => {})) return;
+          const memberId = btn.dataset.deleteMember;
+          const used = expenses.some(e => (e.splitAmong || []).includes(memberId) || e.paidBy === memberId);
+          if (used) {
+            alert('This member is already used in expenses. Delete or update those expenses first.');
+            return;
+          }
+          if (!confirm('Delete this member?')) return;
+          await deleteDoc(doc(db, 'expenseDashboards', dashboardId, 'members', memberId));
+          await updateDoc(dashboardRef, { updatedAt: serverTimestamp() });
+        });
+      });
+    }
+
+    function renderAll() {
+      setHeader();
+      renderPaidByOptions();
+      renderSplitMembers();
+      renderStats();
+      renderExpenses();
+      renderBalancesAndSettlements();
+      renderMemberManageList();
+      const updatedAt = dashboard?.updatedAt?.toDate?.();
+      els.lastUpdated.textContent = updatedAt
+        ? `Last updated: ${updatedAt.toLocaleString()}`
+        : 'Connected. Waiting for first save.';
+    }
+
+    async function addMember() {
+      if (!requireAuth(() => {})) return;
+      const name = document.getElementById('memberName').value.trim();
+      if (!name) {
+        alert('Enter a member name.');
+        return;
+      }
+      await addDoc(membersRef, {
+        name,
+        createdAt: serverTimestamp(),
+        createdBy: currentUser?.uid || null
+      });
+      document.getElementById('memberName').value = '';
+      await updateDoc(dashboardRef, { updatedAt: serverTimestamp() });
+    }
+
+    async function saveExpense() {
+      if (!requireAuth(() => {})) return;
+      const title = document.getElementById('expenseTitle').value.trim();
+      const amount = Number(document.getElementById('expenseAmount').value);
+      const paidBy = document.getElementById('paidBy').value;
+      const date = document.getElementById('expenseDate').value;
+      const note = document.getElementById('expenseNote').value.trim();
+      const splitAmong = [...document.querySelectorAll('.split-person:checked')].map(x => x.value);
+
+      if (!title) return alert('Enter an expense title.');
+      if (!(amount > 0)) return alert('Enter a valid amount.');
+      if (!paidBy) return alert('Select who paid.');
+      if (!splitAmong.length) return alert('Select at least one member to split with.');
+
+      const payerName = members.find(m => m.id === paidBy)?.name || '';
+
+      await addDoc(expensesRef, {
+        title,
+        amount,
+        paidBy,
+        date,
+        note,
+        splitAmong,
+        splitMode,
+        createdAt: serverTimestamp(),
+        createdBy: currentUser?.uid || null,
+        createdByName: currentUser?.email || payerName
+      });
+      await updateDoc(dashboardRef, { updatedAt: serverTimestamp() });
+
+      document.getElementById('expenseTitle').value = '';
+      document.getElementById('expenseAmount').value = '';
+      document.getElementById('expenseNote').value = '';
+      closeModal('expenseModal');
+    }
+
+    async function signIn() {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      els.authError.textContent = '';
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        closeModal('authModal');
+      } catch (err) {
+        els.authError.textContent = err?.message || 'Unable to sign in.';
+      }
+    }
+
+    els.signInBtn.addEventListener('click', async () => {
+      if (currentUser) {
+        await signOut(auth);
+      } else {
+        openModal('authModal');
+      }
+    });
+
+    els.addExpenseBtn.addEventListener('click', () => requireAuth(() => openModal('expenseModal')));
+    els.manageMembersBtn.addEventListener('click', () => requireAuth(() => openModal('membersModal')));
+    document.getElementById('addMemberBtn').addEventListener('click', addMember);
+    document.getElementById('saveExpenseBtn').addEventListener('click', saveExpense);
+    document.getElementById('authSubmitBtn').addEventListener('click', signIn);
+    els.expenseSearch.addEventListener('input', renderExpenses);
+    document.getElementById('expenseDate').value = new Date().toISOString().slice(0,10);
+
+    els.shareBtn.addEventListener('click', async () => {
+      const link = `${location.origin}${location.pathname}?group=${encodeURIComponent(dashboardId)}`;
+      await navigator.clipboard.writeText(link);
+      els.lastUpdated.textContent = `Share link copied: ${link}`;
+    });
+
+    onAuthStateChanged(auth, user => {
+      currentUser = user || null;
+      els.signInBtn.textContent = currentUser ? 'Sign Out' : 'Sign In';
+      els.authStatus.textContent = currentUser
+        ? `Signed in as ${currentUser.email}. You can add, edit, and manage shared expenses.`
+        : 'Viewing mode. Sign in to add, edit, or delete expenses.';
+      renderAll();
+    });
+
+    await ensureDashboard();
+
+    onSnapshot(dashboardRef, snap => {
+      dashboard = snap.exists() ? snap.data() : null;
+      renderAll();
+    });
+
+    onSnapshot(query(membersRef, orderBy('createdAt', 'asc')), snap => {
+      members = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderAll();
+    });
+
+    onSnapshot(query(expensesRef, orderBy('createdAt', 'desc')), snap => {
+      expenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderAll();
+    });
+  </script>
+</body>
+</html>
