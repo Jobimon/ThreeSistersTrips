@@ -424,7 +424,17 @@
 
     <div class="top-note">
       <div class="auth-status" id="authStatus">Viewing mode. Sign in to add, edit, or delete expenses.</div>
-      <div class="share-box" id="lastUpdated">Connecting to Firebase...</div>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+        <div class="share-box" style="display:flex; align-items:center; gap:10px;">
+          <span>Currency</span>
+          <select id="currencySelect" style="width:auto; min-width:110px; padding:10px 12px;">
+            <option value="EUR">EUR</option>
+            <option value="USD">USD</option>
+            <option value="INR">INR</option>
+          </select>
+        </div>
+        <div class="share-box" id="lastUpdated">Connecting to Firebase...</div>
+      </div>
     </div>
 
     <section class="stats" id="statsGrid">
@@ -520,13 +530,15 @@
         <div class="field" style="margin-top:12px;">
           <label>Split type</label>
           <div class="pill-toggle">
-            <button type="button" class="active" data-split-mode="equal">Equal split</button>
-            <button type="button" data-split-mode="custom">Custom people</button>
+            <button type="button" class="active" data-split-mode="everyone">Everyone</button>
+            <button type="button" data-split-mode="custom">Selected member(s)</button>
+            <button type="button" data-split-mode="self">Just payer</button>
           </div>
         </div>
         <div class="field" style="margin-top:12px;">
           <label>Split among</label>
           <div class="checkbox-grid" id="splitMembers"></div>
+          <div class="tiny" id="splitHelp" style="margin-top:8px;">Everyone in the group will share this expense equally.</div>
         </div>
         <div class="field" style="margin-top:12px;">
           <label for="expenseNote">Notes</label>
@@ -634,8 +646,15 @@
     const membersRef = collection(db, 'expenseDashboards', dashboardId, 'members');
     const expensesRef = collection(db, 'expenseDashboards', dashboardId, 'expenses');
 
-    const currency = window.EXPENSE_CURRENCY || 'USD';
-    const money = new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 2 });
+    let currency = window.EXPENSE_CURRENCY || 'EUR';
+
+    function moneyFormatter() {
+      return new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 2 });
+    }
+
+    function fmtMoney(value) {
+      return moneyFormatter().format(Number(value || 0));
+    }
 
     const els = {
       dashboardTitle: document.getElementById('dashboardTitle'),
@@ -663,14 +682,16 @@
       largestExpenseName: document.getElementById('largestExpenseName'),
       avgExpense: document.getElementById('avgExpense'),
       memberManageList: document.getElementById('memberManageList'),
-      authError: document.getElementById('authError')
+      authError: document.getElementById('authError'),
+      currencySelect: document.getElementById('currencySelect'),
+      splitHelp: document.getElementById('splitHelp')
     };
 
     let currentUser = null;
     let dashboard = null;
     let members = [];
     let expenses = [];
-    let splitMode = 'equal';
+    let splitMode = 'everyone';
 
     const openModal = (id) => document.getElementById(id).classList.add('open');
     const closeModal = (id) => document.getElementById(id).classList.remove('open');
@@ -679,12 +700,14 @@
       btn.addEventListener('click', () => closeModal(btn.dataset.close));
     });
 
+    function setSplitMode(mode) {
+      splitMode = mode;
+      document.querySelectorAll('[data-split-mode]').forEach(x => x.classList.toggle('active', x.dataset.splitMode === mode));
+      renderSplitMembers();
+    }
+
     document.querySelectorAll('[data-split-mode]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        splitMode = btn.dataset.splitMode;
-        document.querySelectorAll('[data-split-mode]').forEach(x => x.classList.toggle('active', x === btn));
-        renderSplitMembers();
-      });
+      btn.addEventListener('click', () => setSplitMode(btn.dataset.splitMode));
     });
 
     function requireAuth(action) {
@@ -727,6 +750,8 @@
       els.groupCodeChip.textContent = `Group ID: ${dashboardId}`;
       if (dashboard?.title) els.dashboardTitle.textContent = dashboard.title;
       if (dashboard?.subtitle) els.dashboardSubtitle.textContent = dashboard.subtitle;
+      currency = dashboard?.currency || currency || 'EUR';
+      els.currencySelect.value = currency;
     }
 
     function renderPaidByOptions() {
@@ -738,21 +763,41 @@
     function renderSplitMembers() {
       if (!members.length) {
         els.splitMembers.innerHTML = '<div class="empty">Add members first.</div>';
+        els.splitHelp.textContent = 'You need at least one member before adding expenses.';
         return;
       }
-      els.splitMembers.innerHTML = members.map((m, idx) => `
-        <label class="check-card">
-          <input type="checkbox" class="split-person" value="${m.id}" ${splitMode === 'equal' ? 'checked' : idx < Math.min(2, members.length) ? 'checked' : ''} />
-          <div>
-            <div class="name">${safeText(m.name)}</div>
-            <div class="tiny">${initials(m.name)}</div>
-          </div>
-        </label>
-      `).join('');
 
-      if (splitMode === 'equal') {
-        document.querySelectorAll('.split-person').forEach(cb => cb.disabled = false);
+      const paidBy = els.paidBy.value;
+      const defaultSelected = new Set();
+      if (splitMode === 'everyone') {
+        members.forEach(m => defaultSelected.add(m.id));
+        els.splitHelp.textContent = 'Everyone in the group will share this expense equally.';
+      } else if (splitMode === 'self') {
+        if (paidBy) defaultSelected.add(paidBy);
+        els.splitHelp.textContent = 'Only the payer will carry this expense. Useful for personal purchases.';
+      } else {
+        els.splitHelp.textContent = 'Choose one member, multiple members, or even only one person other than the payer.';
       }
+
+      els.splitMembers.innerHTML = members.map(m => {
+        const checked = defaultSelected.has(m.id);
+        const locked = splitMode !== 'custom';
+        return `
+          <label class="check-card">
+            <input type="checkbox" class="split-person" value="${m.id}" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''} />
+            <div>
+              <div class="name">${safeText(m.name)}</div>
+              <div class="tiny">${initials(m.name)}${m.id === paidBy ? ' • payer' : ''}</div>
+            </div>
+          </label>
+        `;
+      }).join('');
+    }
+
+    function getSelectedSplitMembers() {
+      if (splitMode === 'everyone') return members.map(m => m.id);
+      if (splitMode === 'self') return els.paidBy.value ? [els.paidBy.value] : [];
+      return [...document.querySelectorAll('.split-person:checked')].map(x => x.value);
     }
 
     function computeBalances() {
@@ -790,12 +835,12 @@
     function renderStats() {
       const total = expenses.reduce((sum, x) => sum + Number(x.amount || 0), 0);
       const largest = expenses.reduce((best, x) => Number(x.amount || 0) > Number(best?.amount || 0) ? x : best, null);
-      els.totalAmount.textContent = money.format(total || 0);
+      els.totalAmount.textContent = fmtMoney(total || 0);
       els.expenseCount.textContent = `${expenses.length} transaction${expenses.length === 1 ? '' : 's'}`;
       els.memberCount.textContent = String(members.length);
-      els.largestExpense.textContent = money.format(Number(largest?.amount || 0));
+      els.largestExpense.textContent = fmtMoney(Number(largest?.amount || 0));
       els.largestExpenseName.textContent = largest ? largest.title || 'Untitled expense' : 'No expenses yet';
-      els.avgExpense.textContent = money.format(expenses.length ? total / expenses.length : 0);
+      els.avgExpense.textContent = fmtMoney(expenses.length ? total / expenses.length : 0);
     }
 
     function renderBalancesAndSettlements() {
@@ -814,7 +859,7 @@
               <div class="sub">${m.balance > 0.009 ? 'Should receive' : m.balance < -0.009 ? 'Owes' : 'Settled up'}</div>
             </div>
             <div class="amount ${m.balance > 0.009 ? 'positive' : m.balance < -0.009 ? 'negative' : 'neutral'}">
-              ${m.balance < 0 ? '-' : ''}${money.format(Math.abs(m.balance))}
+              ${m.balance < 0 ? '-' : ''}${fmtMoney(Math.abs(m.balance))}
             </div>
           </div>
         </div>
@@ -829,7 +874,7 @@
                   <div class="name">${safeText(s.from)} → ${safeText(s.to)}</div>
                   <div class="sub">Suggested settlement</div>
                 </div>
-                <div class="amount positive">${money.format(s.amount)}</div>
+                <div class="amount positive">${fmtMoney(s.amount)}</div>
               </div>
             </div>
           `).join('')
@@ -852,14 +897,15 @@
       els.expenseList.innerHTML = filtered.map(exp => {
         const payer = memberMap[exp.paidBy] || 'Unknown';
         const splitNames = (exp.splitAmong || []).map(id => memberMap[id] || 'Unknown').join(', ');
+        const splitLabel = exp.splitMode === 'self' ? 'Just payer' : exp.splitMode === 'everyone' ? 'Everyone' : (splitNames || '—');
         return `
           <div class="expense-item">
             <div class="expense-row">
               <div>
                 <div class="name">${safeText(exp.title || 'Untitled expense')}</div>
-                <div class="sub">Paid by ${safeText(payer)} • ${formatDate(exp.date)} • Split among: ${safeText(splitNames || '—')}</div>
+                <div class="sub">Paid by ${safeText(payer)} • ${formatDate(exp.date)} • Split: ${safeText(splitLabel)}</div>
               </div>
-              <div class="amount">${money.format(Number(exp.amount || 0))}</div>
+              <div class="amount">${fmtMoney(Number(exp.amount || 0))}</div>
             </div>
             ${exp.note ? `<div class="meta">${safeText(exp.note)}</div>` : ''}
             <div class="expense-row" style="margin-top:12px;">
@@ -929,18 +975,27 @@
 
     async function addMember() {
       if (!requireAuth(() => {})) return;
-      const name = document.getElementById('memberName').value.trim();
+      const input = document.getElementById('memberName');
+      const name = input.value.trim();
       if (!name) {
         alert('Enter a member name.');
         return;
       }
-      await addDoc(membersRef, {
-        name,
-        createdAt: serverTimestamp(),
-        createdBy: currentUser?.uid || null
-      });
-      document.getElementById('memberName').value = '';
-      await updateDoc(dashboardRef, { updatedAt: serverTimestamp() });
+      if (members.some(m => m.name.toLowerCase() === name.toLowerCase())) {
+        alert('That member already exists.');
+        return;
+      }
+      try {
+        await addDoc(membersRef, {
+          name,
+          createdAt: serverTimestamp(),
+          createdBy: currentUser?.uid || null
+        });
+        input.value = '';
+        await setDoc(dashboardRef, { updatedAt: serverTimestamp(), currency }, { merge: true });
+      } catch (err) {
+        alert(err?.message || 'Unable to add member. Check Firebase Auth and Firestore rules.');
+      }
     }
 
     async function saveExpense() {
@@ -950,7 +1005,7 @@
       const paidBy = document.getElementById('paidBy').value;
       const date = document.getElementById('expenseDate').value;
       const note = document.getElementById('expenseNote').value.trim();
-      const splitAmong = [...document.querySelectorAll('.split-person:checked')].map(x => x.value);
+      const splitAmong = getSelectedSplitMembers();
 
       if (!title) return alert('Enter an expense title.');
       if (!(amount > 0)) return alert('Enter a valid amount.');
@@ -959,24 +1014,30 @@
 
       const payerName = members.find(m => m.id === paidBy)?.name || '';
 
-      await addDoc(expensesRef, {
-        title,
-        amount,
-        paidBy,
-        date,
-        note,
-        splitAmong,
-        splitMode,
-        createdAt: serverTimestamp(),
-        createdBy: currentUser?.uid || null,
-        createdByName: currentUser?.email || payerName
-      });
-      await updateDoc(dashboardRef, { updatedAt: serverTimestamp() });
+      try {
+        await addDoc(expensesRef, {
+          title,
+          amount,
+          paidBy,
+          date,
+          note,
+          splitAmong,
+          splitMode,
+          currency,
+          createdAt: serverTimestamp(),
+          createdBy: currentUser?.uid || null,
+          createdByName: currentUser?.email || payerName
+        });
+        await setDoc(dashboardRef, { updatedAt: serverTimestamp(), currency }, { merge: true });
 
-      document.getElementById('expenseTitle').value = '';
-      document.getElementById('expenseAmount').value = '';
-      document.getElementById('expenseNote').value = '';
-      closeModal('expenseModal');
+        document.getElementById('expenseTitle').value = '';
+        document.getElementById('expenseAmount').value = '';
+        document.getElementById('expenseNote').value = '';
+        setSplitMode('everyone');
+        closeModal('expenseModal');
+      } catch (err) {
+        alert(err?.message || 'Unable to save expense.');
+      }
     }
 
     async function signIn() {
@@ -1005,6 +1066,26 @@
     document.getElementById('saveExpenseBtn').addEventListener('click', saveExpense);
     document.getElementById('authSubmitBtn').addEventListener('click', signIn);
     els.expenseSearch.addEventListener('input', renderExpenses);
+    els.paidBy.addEventListener('change', () => renderSplitMembers());
+    els.currencySelect.addEventListener('change', async () => {
+      const nextCurrency = els.currencySelect.value;
+      if (nextCurrency === currency) return;
+      if (!requireAuth(() => {})) {
+        els.currencySelect.value = currency;
+        return;
+      }
+      try {
+        currency = nextCurrency;
+        await setDoc(dashboardRef, { currency, updatedAt: serverTimestamp() }, { merge: true });
+        renderAll();
+      } catch (err) {
+        els.currencySelect.value = currency;
+        alert(err?.message || 'Unable to update currency.');
+      }
+    });
+    document.getElementById('memberName').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') addMember();
+    });
     document.getElementById('expenseDate').value = new Date().toISOString().slice(0,10);
 
     els.shareBtn.addEventListener('click', async () => {

@@ -1,10 +1,14 @@
 window.FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDA3vgzzLHyg2d0Xv3XnKU2gSjDyGBvWr0",
-  authDomain: "threesisterseuropetrip.firebaseapp.com",
-  projectId: "threesisterseuropetrip",
-  storageBucket: "threesisterseuropetrip.appspot.com", 
-  messagingSenderId: "421699331524",
-  appId: "1:421699331524:web:f8abd3e3aa24c6fc293091"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
-window.CHECKLIST_DOC_PATH = "tripChecklists/three-sisters-europe-2026";
+// Optional: change these defaults for your trip or group
+window.EXPENSE_DASHBOARD_ID = "three-sisters-europe-2026-expenses";
+window.EXPENSE_DASHBOARD_TITLE = "Three Sisters Europe Trip 2026 — Expense Dashboard";
+window.EXPENSE_DASHBOARD_SUBTITLE = "Track who paid, split group costs, and see balances live for the whole trip.";
+window.EXPENSE_CURRENCY = "EUR";
