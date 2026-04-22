@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Three Sisters Europe Trip - Packing Checklist</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --cream: #F8F9FB;
+      --ink: #0F1720;
+      --rust: #EF3340;
+      --gold: #FFD100;
+      --sage: #AE1C28;
+      --sky: #0055A4;
+      --stone: #5B6470;
+      --light-stone: #E4E8EE;
+      --nl: #AE1C28;
+      --nl-accent: #FF9B00;
+      --be: #FFD100;
+      --be-ink: #111111;
+      --fr: #0055A4;
+      --fr-red: #EF4135;
+      --nav-width: 260px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html {
+      background:
+        radial-gradient(circle at top, rgba(255, 209, 0, 0.08), transparent 28%),
+        linear-gradient(180deg, #0b1018 0%, #111927 48%, #eef2f7 48%, #f5f7fb 100%);
+    }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: transparent;
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      padding: 18px;
+      gap: 20px;
+    }
+    #sidebar {
+      width: var(--nav-width);
+      background: rgba(14, 20, 31, 0.92);
+      backdrop-filter: blur(18px);
+      border-radius: 28px;
+      position: fixed;
+      top: 18px; left: 18px; bottom: 18px;
+      overflow-y: auto;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease;
+      box-shadow: 0 24px 60px rgba(3, 8, 20, 0.34);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .sidebar-header { padding: 28px 22px 18px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .trip-flag { display: flex; gap: 6px; margin-bottom: 16px; background: rgba(255,255,255,0.04); border-radius: 999px; padding: 6px; }
+    .flag-stripe { height: 6px; border-radius: 99px; flex: 1; }
+    .sidebar-title { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: #fff; letter-spacing: 0.12em; text-transform: uppercase; line-height: 1.45; }
+    .sidebar-dates { font-size: 11px; color: rgba(255,255,255,0.56); margin-top: 8px; letter-spacing: 0.05em; }
+    .nav-section-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.35); padding: 18px 22px 8px; font-weight: 600; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px; margin: 4px 12px; padding: 13px 14px;
+      cursor: pointer; color: rgba(255,255,255,0.65); font-size: 13.5px; font-weight: 400;
+      transition: all 0.2s; border-radius: 16px; text-decoration: none;
+    }
+    .nav-item:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .nav-item.active {
+      color: #fff;
+      background: linear-gradient(135deg, rgba(0,85,164,0.28), rgba(239,65,53,0.18), rgba(255,209,0,0.16));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+      font-weight: 500;
+    }
+    .nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+    #main { margin-left: calc(var(--nav-width) + 20px); width: calc(100% - var(--nav-width) - 20px); min-height: 100vh; }
+    #menu-toggle {
+      display: none; position: fixed; top: 14px; left: 14px; z-index: 200;
+      background: rgba(14, 20, 31, 0.92); border: 1px solid rgba(255,255,255,0.08); color: #fff;
+      width: 42px; height: 42px; border-radius: 10px; font-size: 18px; cursor: pointer;
+      align-items: center; justify-content: center; box-shadow: 0 12px 26px rgba(3, 8, 20, 0.26);
+      backdrop-filter: blur(12px);
+    }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 90; }
+
+    .hero {
+      position: relative;
+      background:
+        radial-gradient(circle at 12% 22%, rgba(255,209,0,0.22), transparent 24%),
+        radial-gradient(circle at 85% 15%, rgba(0,85,164,0.24), transparent 26%),
+        radial-gradient(circle at 74% 82%, rgba(239,65,53,0.18), transparent 28%),
+        linear-gradient(135deg, #0f1724 0%, #172335 45%, #0d1624 100%);
+      color: #fff; border-radius: 34px; margin-bottom: 22px; box-shadow: 0 22px 60px rgba(8, 13, 27, 0.28);
+      border: 1px solid rgba(255,255,255,0.08); padding: 52px 48px 42px; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; inset: 0; border-radius: 34px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02) 55%, transparent 100%);
+    }
+    .hero > * { position: relative; z-index: 1; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.08);
+      padding: 8px 14px; border-radius: 999px; letter-spacing: 0.16em; font-size: 10px;
+      margin-bottom: 18px; text-transform: uppercase; color: var(--gold); font-weight: 700;
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', serif; font-size: clamp(34px, 5vw, 62px);
+      line-height: 1.02; letter-spacing: -0.03em; margin-bottom: 18px;
+    }
+    .hero h1 em { color: #f2d279; font-style: normal; }
+    .hero-sub {
+      color: rgba(255,255,255,0.82); max-width: 840px; font-size: 15px; line-height: 1.7; margin-bottom: 18px;
+    }
+    .hero-meta, .country-flags-hero { display: flex; gap: 12px; flex-wrap: wrap; }
+    .hero-meta-item, .country-pill {
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); border-radius: 999px;
+      padding: 9px 14px; color: rgba(255,255,255,0.86); font-size: 12.5px; font-weight: 500;
+    }
+    .hero-meta-item strong { color: #fff; }
+    .page-content { max-width: 1180px; padding: 6px 4px 26px; }
+    .summary-grid, .quick-grid, .section-grid {
+      display: grid; gap: 18px;
+    }
+    .summary-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 22px; }
+    .quick-grid { grid-template-columns: 1.2fr 0.8fr; margin-bottom: 22px; }
+    .section-grid { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+    .summary-box, .panel, .section-card {
+      background: rgba(255,255,255,0.82); backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,0.72);
+      box-shadow: 0 18px 40px rgba(15, 23, 32, 0.08); border-radius: 24px;
+    }
+    .summary-box { padding: 20px 18px; text-align: center; }
+    .summary-box .num { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; line-height: 1; }
+    .summary-box .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--stone); font-weight: 600; margin-top: 4px; }
+    .panel { padding: 22px; }
+    .panel h2, .section-header h3 { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--ink); }
+    .panel p, .hint, .item-desc, .footnote { color: var(--stone); line-height: 1.65; }
+    .weather-note { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin-top: 14px; }
+    .metric { background: rgba(245,247,251,0.92); border: 1px solid rgba(228,232,238,0.9); border-radius: 18px; padding: 16px; }
+    .metric .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--stone); font-weight: 700; margin-bottom: 6px; }
+    .metric .value { font-size: 22px; font-weight: 800; color: var(--ink); }
+    .metric .tiny { font-size: 13px; margin-top: 6px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+    button.action-btn {
+      border: 0; cursor: pointer; border-radius: 16px; padding: 13px 18px; font-weight: 700; font-size: 14px;
+      transition: transform .15s ease, opacity .15s ease; box-shadow: 0 12px 26px rgba(15, 23, 32, 0.14);
+    }
+    button.action-btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: linear-gradient(135deg, #101827, #1b2a42); color: #fff; }
+    .btn-secondary { background: linear-gradient(135deg, rgba(0,85,164,0.10), rgba(239,65,53,0.10), rgba(255,209,0,0.18)); color: var(--ink); }
+    .progress-wrap { display: grid; place-items: center; gap: 18px; }
+    .progress-ring {
+      position: relative; width: 160px; height: 160px; border-radius: 50%; display: grid; place-items: center;
+      background: conic-gradient(var(--gold) 0deg, var(--sky) 0deg, rgba(228,232,238,0.9) 0deg);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.65);
+    }
+    .progress-ring::before {
+      content: ''; position: absolute; inset: 14px; border-radius: 50%; background: rgba(255,255,255,0.96); border: 1px solid rgba(228,232,238,0.9);
+    }
+    .progress-text { position: relative; text-align: center; }
+    .progress-text strong { display: block; font-size: 34px; color: var(--ink); }
+    .progress-text span { color: var(--stone); text-transform: uppercase; letter-spacing: .12em; font-size: 11px; font-weight: 700; }
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+    .stat-box { background: rgba(245,247,251,0.92); border: 1px solid rgba(228,232,238,0.9); border-radius: 18px; padding: 14px; text-align: center; }
+    .stat-box .n { font-size: 24px; font-weight: 800; color: var(--ink); }
+    .stat-box .t { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--stone); font-weight: 700; margin-top: 4px; }
+    .section-card { overflow: hidden; }
+    .section-header {
+      padding: 18px 20px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+      border-bottom: 1px solid rgba(228,232,238,0.65); background: rgba(255,255,255,0.48);
+    }
+    .hint { font-size: 13px; display: block; margin-top: 4px; }
+    .tag { padding: 8px 12px; border-radius: 100px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; background: linear-gradient(135deg, rgba(0,85,164,0.10), rgba(239,65,53,0.10), rgba(255,209,0,0.18)); color: var(--ink); }
+    .list { padding: 10px 12px 14px; }
+    .item {
+      display: grid; grid-template-columns: 34px 1fr auto; align-items: start; gap: 12px; padding: 12px 10px; border-radius: 18px; transition: background .2s ease;
+    }
+    .item:hover { background: rgba(245,247,251,0.72); }
+    .item input[type="checkbox"] {
+      appearance: none; width: 24px; height: 24px; border-radius: 8px; border: 2px solid rgba(15,23,32,0.18); background: white; margin-top: 2px; cursor: pointer; position: relative; transition: all 0.18s ease;
+    }
+    .item input[type="checkbox"]:checked { background: linear-gradient(135deg, #101827, #0f4f95, #a8222f); border-color: transparent; }
+    .item input[type="checkbox"]:checked::after {
+      content: '✓'; position: absolute; inset: 0; display: grid; place-items: center; color: white; font-size: 15px; font-weight: 800;
+    }
+    .item-title { font-size: 15px; font-weight: 700; line-height: 1.4; color: var(--ink); }
+    .item-desc { margin-top: 4px; font-size: 13px; }
+    .checked .item-title, .checked .item-desc { opacity: .58; text-decoration: line-through; }
+    .footnote {
+      margin-top: 22px; padding: 16px 18px; background: rgba(255,255,255,0.82); border: 1px solid rgba(255,255,255,0.72);
+      border-radius: 24px; box-shadow: 0 18px 40px rgba(15, 23, 32, 0.08); font-size: 13px;
+    }
+    .section-title { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--ink); margin: 8px 6px 16px; }
+
+    @media (max-width: 1024px) {
+      body { padding: 12px; }
+      #main { width: 100%; margin-left: 0; }
+      .hero { padding: 44px 26px 34px; border-radius: 28px; }
+      .page-content { padding: 2px 0 18px; }
+      .quick-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      html { background: linear-gradient(180deg, #0b1018 0%, #111927 36%, #f3f6fb 36%, #f6f8fc 100%); }
+      body { padding: 10px; }
+      #sidebar { top: 10px; left: 10px; bottom: 10px; border-radius: 24px; transform: translateX(-100%); }
+      #sidebar.open { transform: translateX(0); }
+      #menu-toggle { display: flex; }
+      .sidebar-overlay.open { display: block; }
+      .hero { border-radius: 28px; padding: 60px 20px 28px; }
+      .hero h1 { font-size: 34px; }
+      .hero-meta-item, .country-pill { width: 100%; justify-content: flex-start; }
+      .weather-note, .section-grid { grid-template-columns: 1fr; }
+      .item { grid-template-columns: 30px 1fr; }
+      .tag { grid-column: 2; justify-self: start; margin-top: 4px; }
+      .section-header { display: block; }
+      .section-header .tag { display: inline-flex; margin-top: 10px; }
+    }
+  
+/* Shared countdown */
+#countdown-box{
+  position:fixed;top:16px;right:16px;z-index:250;
+  min-width:86px;padding:10px 12px;border-radius:18px;
+  background:rgba(16,24,39,.92);backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.12);box-shadow:0 14px 30px rgba(3,8,20,.28);
+  text-align:center;color:#fff;
+}
+#countdown-number{
+  font-family:'Playfair Display',serif;font-size:28px;font-weight:900;line-height:1;color:var(--gold, #FFD100);
+}
+#countdown-label{
+  margin-top:4px;font-size:11px;line-height:1.2;letter-spacing:.04em;color:rgba(255,255,255,.82);
+}
+@media (max-width: 768px){
+  #countdown-box{top:12px;right:12px;min-width:74px;padding:8px 10px;border-radius:16px}
+  #countdown-number{font-size:24px}
+  #countdown-label{font-size:10px}
+}
+
+</style>
+</head>
+<body><div id="countdown-box"><div id="countdown-number">--</div><div id="countdown-label">days to go ✈️</div></div>
+  <button id="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+  <nav id="sidebar"><div class="sidebar-header"><div class="trip-flag"><div class="flag-stripe" style="background:var(--nl)"></div><div class="flag-stripe" style="background:var(--nl-accent)"></div><div class="flag-stripe" style="background:var(--nl)"></div><div class="flag-stripe" style="background:var(--be-ink)"></div><div class="flag-stripe" style="background:var(--be)"></div><div class="flag-stripe" style="background:var(--fr-red)"></div><div class="flag-stripe" style="background:#fff"></div><div class="flag-stripe" style="background:var(--fr)"></div></div><div class="sidebar-title">Netherlands, Belgium<br/>&amp; France 2026</div><div class="sidebar-dates">May 8 – May 17, 2026 · 10 Days</div></div><div class="nav-section-label">Overview</div><a class="nav-item" href="index.html"><span class="nav-icon">🗺️</span> Trip Overview</a><a class="nav-item active" href="packing.html"><span class="nav-icon">🧳</span> Trip Packing Checklist</a><a class="nav-item" href="checklist.html"><span class="nav-icon">✅</span> Trip Checklist</a><a class="nav-item" href="stay.html"><span class="nav-icon">🏨</span> Stay Details</a><a class="nav-item" href="tripdetails.html"><span class="nav-icon">📋</span> Trip Details</a><div class="nav-section-label">Getting Around</div><a class="nav-item" href="driving.html"><span class="nav-icon">🚗</span> Driving Details</a><a class="nav-item" href="parking.html"><span class="nav-icon">🅿️</span> Parking Details</a><div class="nav-section-label">Food & Plans</div><a class="nav-item" href="eat.html"><span class="nav-icon">🍽️</span> Where to Eat</a><a class="nav-item" href="reservations.html"><span class="nav-icon">📌</span> Reservations</a><div class="nav-section-label">Style & Photos</div><a class="nav-item" href="dresscode.html"><span class="nav-icon">👗</span> Dress Code</a><a class="nav-item" href="photos.html"><span class="nav-icon">📸</span> Photo Shoot Spots</a><a class="nav-item" href="gallery.html"><span class="nav-icon">🖼️</span> Gallery</a></nav>
+
+  <main id="main">
+    <section class="hero">
+      <div class="hero-eyebrow">Premium Travel Companion · Private checkmarks by device</div>
+      <h1>Europe <em>Packing Checklist</em></h1>
+      <p class="hero-sub">A luxury-style packing page designed to visually match your main trip dashboard. Built for your 10-day Netherlands, Belgium, and France itinerary with 2 laundry cycles, spring layering, and your added personal essentials.</p>
+      <div class="hero-meta">
+        <div class="hero-meta-item">🧺 <strong>Pack for 4–5 days</strong> then repeat after laundry</div>
+        <div class="hero-meta-item">🌦️ <strong>50–70°F</strong> mild spring weather</div>
+        <div class="hero-meta-item">🚗 <strong>IDP included</strong> for Europe driving</div>
+      </div>
+      <div class="country-flags-hero" style="margin-top:16px;">
+        <div class="country-pill">🇳🇱 Netherlands</div>
+        <div class="country-pill">🇧🇪 Belgium</div>
+        <div class="country-pill">🇫🇷 France</div>
+      </div>
+      <div class="actions">
+        <button class="action-btn btn-primary" id="checkEssentialsBtn">Check all essentials</button>
+        <button class="action-btn btn-secondary" id="resetBtn">Reset all checkmarks</button>
+      </div>
+    </section>
+
+    <div class="page-content">
+      <section class="summary-grid">
+        <div class="summary-box"><div class="num" id="totalItems">0</div><div class="lbl">Total items</div></div>
+        <div class="summary-box"><div class="num" id="doneCount">0</div><div class="lbl">Packed</div></div>
+        <div class="summary-box"><div class="num" id="leftCount">0</div><div class="lbl">Remaining</div></div>
+        <div class="summary-box"><div class="num">2</div><div class="lbl">Laundry days planned</div></div>
+      </section>
+
+      <section class="quick-grid">
+        <div class="panel">
+          <h2>Weather-based packing note</h2>
+          <p>May in these countries is usually comfortable, but mornings, evenings, wind, and light rain can shift quickly. The smartest strategy is premium layering: lightweight basics, one waterproof outer layer, and walking-first shoes.</p>
+          <div class="weather-note">
+            <div class="metric"><div class="label">Typical temperature</div><div class="value">50–70°F</div><div class="tiny">About 10–21°C during your May travel window.</div></div>
+            <div class="metric"><div class="label">Most important strategy</div><div class="value">Layers</div><div class="tiny">Easy repeats after laundry and comfort across cities.</div></div>
+            <div class="metric"><div class="label">Rain readiness</div><div class="value">Light rain</div><div class="tiny">Carry a compact umbrella and a light waterproof jacket.</div></div>
+          </div>
+        </div>
+        <div class="panel progress-wrap">
+          <h2>Your progress</h2>
+          <div class="progress-ring" id="progressRing">
+            <div class="progress-text"><strong id="percent">0%</strong><span>packed</span></div>
+          </div>
+          <div class="stats-row">
+            <div class="stat-box"><div class="n" id="checkedMini">0</div><div class="t">Checked</div></div>
+            <div class="stat-box"><div class="n" id="remainingMini">0</div><div class="t">Remaining</div></div>
+          </div>
+        </div>
+      </section>
+
+      <h2 class="section-title">Checklist Sections</h2>
+      <div id="sections" class="section-grid"></div>
+
+      <div class="footnote">Laundry plan: pack for about 4–5 days at a time, then wash and repeat twice during the trip. This keeps luggage lighter and makes hotel-to-hotel travel easier. Checkmarks are saved only on this device/browser using local storage, so each person keeps their own private checklist.</div>
+    </div>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'europe_packing_checklist_luxury_v1';
+    const data = [
+      {
+        title: 'Clothing (4–5 day rotation)', hint: 'Pack light and repeat after laundry', items: [
+          { id: 'tops_casual', title: '3–4 casual tops', desc: 'T-shirts or polos for sightseeing and travel days.', tag: 'Qty 3–4', essential: true },
+          { id: 'tops_nice', title: '1–2 nicer tops', desc: 'Useful for Paris dinners or dressier evenings.', tag: 'Qty 1–2', essential: false },
+          { id: 'bottoms_jeans', title: '2 jeans or pants', desc: 'Neutral colors work best for mix-and-match outfits.', tag: 'Qty 2', essential: true },
+          { id: 'bottoms_travel', title: '1 comfortable travel pant', desc: 'Ideal for long drive days and flights.', tag: 'Qty 1', essential: true },
+          { id: 'bottoms_short', title: 'Optional short', desc: 'Only if you want one backup for a warmer day.', tag: 'Optional', essential: false },
+          { id: 'underwear', title: 'Underwear', desc: 'Enough for one rotation until laundry.', tag: 'Qty 5', essential: true },
+          { id: 'socks', title: 'Socks', desc: 'Quick-dry socks are especially useful.', tag: 'Qty 5', essential: true },
+          { id: 'sleepwear', title: 'Sleepwear', desc: 'Comfortable nightwear for hotel stays.', tag: '1–2 sets', essential: true }
+        ]
+      },
+      {
+        title: 'Outerwear & weather gear', hint: 'Most important section for spring Europe', items: [
+          { id: 'jacket_waterproof', title: 'Light waterproof jacket', desc: 'Must-have for wind, chill, and light rain.', tag: 'Must', essential: true },
+          { id: 'hoodie', title: 'Light sweater or hoodie', desc: 'Useful in the morning, evenings, and on cooler days.', tag: 'Must', essential: true },
+          { id: 'compact_jacket', title: 'Compact warm layer', desc: 'Optional thin puffer layer if you get cold easily.', tag: 'Optional', essential: false },
+          { id: 'umbrella', title: 'Compact umbrella', desc: 'Keep it in your day bag every day.', tag: 'Must', essential: true },
+          { id: 'sunglasses', title: 'Sunglasses', desc: 'Bright spring days can still be quite sunny.', tag: 'Recommended', essential: false },
+          { id: 'cap', title: 'Cap or hat', desc: 'Good for walking days and outdoor photos.', tag: 'Recommended', essential: false },
+          { id: 'scarf', title: 'Light scarf', desc: 'Useful in Paris evenings or breezy sightseeing spots.', tag: 'Nice to have', essential: false }
+        ]
+      },
+      {
+        title: 'Shoes', hint: 'Expect long walking days', items: [
+          { id: 'walking_shoes', title: 'Primary walking shoes', desc: 'Most important footwear choice for the whole trip.', tag: 'Must', essential: true },
+          { id: 'backup_shoes', title: 'Backup shoes', desc: 'Sneakers or sandals depending on your comfort.', tag: 'Qty 1', essential: false }
+        ]
+      },
+      {
+        title: 'Laundry items', hint: 'Since you plan to wash twice', items: [
+          { id: 'laundry_bag', title: 'Foldable laundry bag', desc: 'Keeps used clothes separate and organized.', tag: 'Must', essential: true },
+          { id: 'detergent', title: 'Laundry detergent sheets or pods', desc: 'Useful if hotel laundry or self-service is available.', tag: 'Recommended', essential: false },
+          { id: 'stain_pen', title: 'Mini stain remover pen', desc: 'Helpful when re-wearing travel clothes.', tag: 'Optional', essential: false }
+        ]
+      },
+      {
+        title: 'Day bag essentials', hint: 'What to carry daily while sightseeing', items: [
+          { id: 'daypack', title: 'Small backpack or day bag', desc: 'Comfortable for daily walking and carrying essentials.', tag: 'Must', essential: true },
+          { id: 'water_bottle', title: 'Reusable water bottle', desc: 'Very useful for long city days.', tag: 'Recommended', essential: false },
+          { id: 'power_bank', title: 'Portable charger / power bank', desc: 'Essential for maps, photos, tickets, and long outings.', tag: 'Must', essential: true },
+          { id: 'wipes', title: 'Wet wipes / tissues', desc: 'Great for travel, food stops, and quick clean-ups.', tag: 'Recommended', essential: false },
+          { id: 'ziplocks', title: 'Ziplock bags', desc: 'Useful for snacks, charging cables, or small items.', tag: 'Nice to have', essential: false }
+        ]
+      },
+      {
+        title: 'Travel documents & money', hint: 'Keep these ready before leaving', items: [
+          { id: 'passport', title: 'Passport', desc: 'Double-check validity before travel.', tag: 'Must', essential: true },
+          { id: 'passport_copy', title: 'Passport copies', desc: 'Keep digital and printed backup copies.', tag: 'Recommended', essential: false },
+          { id: 'idp', title: 'International Driving Permit (IDP)', desc: 'Carry with your license for Europe driving.', tag: 'Must', essential: true },
+          { id: 'drivers_license', title: 'Driver’s license', desc: 'Carry the original physical license card.', tag: 'Must', essential: true },
+          { id: 'insurance', title: 'Travel insurance details', desc: 'Print or save emergency coverage details.', tag: 'Recommended', essential: false },
+          { id: 'cards', title: 'Credit / debit cards', desc: 'Carry 2–3 cards in case one has issues.', tag: 'Must', essential: true },
+          { id: 'cash', title: 'Euro cash', desc: 'Small amount for restrooms, cafes, or parking meters.', tag: 'Recommended', essential: false }
+        ]
+      },
+      {
+        title: 'Electronics', hint: 'Power and charging basics', items: [
+          { id: 'phone', title: 'Phone', desc: 'Your main travel tool for maps, bookings, and photos.', tag: 'Must', essential: true },
+          { id: 'phone_charger', title: 'Phone charger', desc: 'Preferably a fast charger.', tag: 'Must', essential: true },
+          { id: 'adapter', title: 'Universal adapter', desc: 'Europe typically uses Type C / E plugs.', tag: 'Must', essential: true },
+          { id: 'extra_cable', title: 'Extra charging cable', desc: 'A backup cable helps a lot during trips.', tag: 'Recommended', essential: false },
+          { id: 'computer', title: 'Computer / laptop', desc: 'Bring only if needed for work or trip planning.', tag: 'Optional', essential: false }
+        ]
+      },
+      {
+        title: 'Toiletries & health', hint: 'Travel size works best', items: [
+          { id: 'toothbrush', title: 'Toothbrush', desc: 'Pack in a small toiletries pouch.', tag: 'Must', essential: true },
+          { id: 'paste', title: 'Toothpaste', desc: 'Travel-size tube keeps things compact.', tag: 'Must', essential: true },
+          { id: 'toothbrush_charger', title: 'Toothbrush charger', desc: 'Especially important for an electric toothbrush.', tag: 'Important', essential: true },
+          { id: 'deodorant', title: 'Deodorant', desc: 'Travel-size is easiest to pack.', tag: 'Must', essential: true },
+          { id: 'shaving_set', title: 'Shaving set', desc: 'Razor, blades, cream, and grooming accessories.', tag: 'Recommended', essential: false },
+          { id: 'trimmer', title: 'Trimmer', desc: 'Useful if you prefer your own grooming setup.', tag: 'Optional', essential: false },
+          { id: 'daily_meds', title: 'Regular daily tablets', desc: 'Carry enough for the full trip plus a few extra days.', tag: 'Must', essential: true },
+          { id: 'tylenol', title: 'Tylenol / pain relief', desc: 'Useful for headaches or minor aches.', tag: 'Recommended', essential: false },
+          { id: 'allergy_medicine', title: 'Allergy medicine', desc: 'Especially useful during spring travel.', tag: 'Recommended', essential: false },
+          { id: 'inhaler', title: 'Inhaler', desc: 'Keep this easily accessible, not deep in luggage.', tag: 'Must', essential: true },
+          { id: 'first_aid', title: 'Basic medicines kit', desc: 'Band-aids, digestion tablets, and small first aid basics.', tag: 'Recommended', essential: false }
+        ]
+      },
+      {
+        title: 'Accessories', hint: 'Small but important extras', items: [
+          { id: 'reading_glass', title: 'Reading glass / reading glasses', desc: 'Bring backup if needed.', tag: 'Recommended', essential: false },
+          { id: 'glass_cleaning_cloth', title: 'Glass cleaning cloth', desc: 'Helpful for glasses, sunglasses, and camera lenses.', tag: 'Recommended', essential: false }
+        ]
+      }
+    ];
+
+    const sectionsEl = document.getElementById('sections');
+    const totalItemsEl = document.getElementById('totalItems');
+    const doneCountEl = document.getElementById('doneCount');
+    const leftCountEl = document.getElementById('leftCount');
+    const checkedMiniEl = document.getElementById('checkedMini');
+    const remainingMiniEl = document.getElementById('remainingMini');
+    const percentEl = document.getElementById('percent');
+    const progressRingEl = document.getElementById('progressRing');
+    const resetBtn = document.getElementById('resetBtn');
+    const checkEssentialsBtn = document.getElementById('checkEssentialsBtn');
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('overlay').classList.toggle('open');
+    }
+
+    (function markActivePage() {
+      const currentPage = 'europe_packing_checklist.html';
+      document.querySelectorAll('.nav-item').forEach(link => {
+        if (link.getAttribute('href') === currentPage) link.classList.add('active');
+      });
+    })();
+
+    function loadState() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+      catch { return {}; }
+    }
+    let state = loadState();
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function allItems() { return data.flatMap(section => section.items); }
+
+    function render() {
+      sectionsEl.innerHTML = '';
+      data.forEach(section => {
+        const card = document.createElement('section');
+        card.className = 'section-card';
+        const checkedInSection = section.items.filter(item => !!state[item.id]).length;
+        card.innerHTML = `
+          <div class="section-header">
+            <div>
+              <h3>${section.title}</h3>
+              <span class="hint">${section.hint}</span>
+            </div>
+            <span class="tag">${checkedInSection}/${section.items.length} packed</span>
+          </div>
+          <div class="list"></div>
+        `;
+        const list = card.querySelector('.list');
+        section.items.forEach(item => {
+          const row = document.createElement('label');
+          row.className = 'item' + (state[item.id] ? ' checked' : '');
+          row.innerHTML = `
+            <input type="checkbox" ${state[item.id] ? 'checked' : ''} aria-label="${item.title}" />
+            <div class="item-main">
+              <div class="item-title">${item.title}</div>
+              <div class="item-desc">${item.desc}</div>
+            </div>
+            <span class="tag">${item.tag}</span>
+          `;
+          row.querySelector('input').addEventListener('change', (e) => {
+            state[item.id] = e.target.checked;
+            saveState();
+            render();
+          });
+          list.appendChild(row);
+        });
+        sectionsEl.appendChild(card);
+      });
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const items = allItems();
+      const done = items.filter(item => !!state[item.id]).length;
+      const total = items.length;
+      const left = total - done;
+      const pct = total ? Math.round((done / total) * 100) : 0;
+      const deg = Math.round((done / total) * 360) || 0;
+      totalItemsEl.textContent = total;
+      doneCountEl.textContent = done;
+      leftCountEl.textContent = left;
+      checkedMiniEl.textContent = done;
+      remainingMiniEl.textContent = left;
+      percentEl.textContent = `${pct}%`;
+      progressRingEl.style.background = `conic-gradient(var(--gold) 0deg, var(--sky) ${deg}deg, rgba(228,232,238,0.9) ${deg}deg)`;
+    }
+
+    resetBtn.addEventListener('click', () => {
+      state = {};
+      saveState();
+      render();
+    });
+
+    checkEssentialsBtn.addEventListener('click', () => {
+      allItems().forEach(item => {
+        if (item.essential) state[item.id] = true;
+      });
+      saveState();
+      render();
+    });
+
+    render();
+  </script>
+<script>
+
+function updateCountdown() {
+  var tripDate = new Date('2026-05-08T00:00:00');
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  var diff = Math.ceil((tripDate - today) / (1000 * 60 * 60 * 24));
+  var numEl = document.getElementById('countdown-number');
+  var labelEl = document.getElementById('countdown-label');
+  if (!numEl || !labelEl) return;
+  if (diff > 0) {
+    numEl.textContent = diff;
+    labelEl.textContent = diff === 1 ? 'day to go ✈️' : 'days to go ✈️';
+  } else if (diff === 0) {
+    numEl.textContent = '🎉';
+    labelEl.textContent = "It's today!";
+  } else {
+    numEl.textContent = '🌍';
+    labelEl.textContent = 'Trip is happening!';
+  }
+}
+updateCountdown();
+
+</script>
+</body>
+</html>

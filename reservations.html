@@ -1,37 +1,452 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Reservations</title>
-<style>
-body {font-family: Arial; display:flex; margin:0}
-.sidebar {width:220px;background:#111;color:#fff;padding:15px;}
-.nav {display:block;color:#ddd;margin:8px 0;text-decoration:none}
-.nav:hover {color:#fff}
-.main {flex:1;padding:20px}
-.countdown {position:fixed; top:10px; right:20px; background:#000;color:#fff;padding:8px 12px;border-radius:8px}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta property="og:image" content="https://jobimon.github.io/ThreeSistersTrips/ThreeSisters.png" />
+  <title>Three Sisters Europe Trip - Reservations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream:#f6f8fc;
+      --ink:#0f1720;
+      --gold:#ffd100;
+      --gold-deep:#8b6200;
+      --stone:#667085;
+      --line:#dfe6ef;
+      --card:rgba(255,255,255,0.84);
+      --sidebar:#101827;
+      --success:#1f7a45;
+      --warn:#9a6700;
+      --danger:#b42318;
+      --blue:#0055A4;
+      --nav-width:260px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:'DM Sans',sans-serif;color:var(--ink);background:linear-gradient(180deg,#0b1018 0%,#111927 32%,#eef2f7 32%,#f6f8fc 100%);padding:18px;display:flex;gap:20px;min-height:100vh;}
+    a{color:var(--blue)}
+    #sidebar{width:var(--nav-width);background:rgba(16,24,39,.94);backdrop-filter:blur(18px);border-radius:28px;position:fixed;top:18px;left:18px;bottom:18px;overflow:auto;box-shadow:0 24px 60px rgba(3,8,20,.34);border:1px solid rgba(255,255,255,.08);}
+    .sidebar-header{padding:28px 22px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
+    .trip-flag{display:flex;gap:6px;background:rgba(255,255,255,.04);border-radius:999px;padding:6px;margin-bottom:16px}
+    .flag-stripe{height:6px;border-radius:99px;flex:1}
+    .sidebar-title{font-family:'Playfair Display',serif;font-weight:700;font-size:15px;color:#fff;line-height:1.45}
+    .sidebar-dates{color:rgba(255,255,255,.56);font-size:12px;margin-top:8px}
+    .nav-section-label{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.35);padding:18px 22px 8px;font-weight:700}
+    .nav-item{display:flex;align-items:center;gap:12px;margin:4px 12px;padding:13px 14px;border-radius:16px;color:rgba(255,255,255,.7);text-decoration:none;font-size:13.5px}
+    .nav-item.active,.nav-item:hover{background:linear-gradient(135deg,rgba(0,85,164,.28),rgba(239,65,53,.18),rgba(255,209,0,.16));color:#fff}
+    .nav-icon{width:20px;text-align:center}
+    #menu-toggle{display:none;position:fixed;top:14px;left:14px;z-index:200;background:rgba(14,20,31,.92);color:#fff;border:1px solid rgba(255,255,255,.08);width:42px;height:42px;border-radius:10px}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:90}
+    #main{margin-left:calc(var(--nav-width) + 20px);width:calc(100% - var(--nav-width) - 20px);}
+    .hero{position:relative;background:radial-gradient(circle at 12% 22%,rgba(255,209,0,.22),transparent 24%),radial-gradient(circle at 85% 15%,rgba(0,85,164,.24),transparent 26%),radial-gradient(circle at 74% 82%,rgba(239,65,53,.18),transparent 28%),linear-gradient(135deg,#0f1724 0%,#172335 45%,#0d1624 100%);border-radius:34px;padding:50px 48px 40px;border:1px solid rgba(255,255,255,.08);box-shadow:0 22px 60px rgba(8,13,27,.28);color:#fff}
+    .page-top-icon{display:inline-flex;align-items:center;gap:12px;padding:8px 14px 8px 8px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);margin-bottom:16px}
+    .page-top-icon img{width:52px;height:52px;border-radius:999px;object-fit:cover;object-position:center 28%;border:2px solid rgba(255,255,255,.75);background:#fff}
+    .page-top-icon span{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+    .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);padding:8px 14px;border-radius:999px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:18px}
+    .hero h1{font-family:'Playfair Display',serif;font-size:clamp(34px,5vw,62px);line-height:1.02;letter-spacing:-.03em;margin:0 0 16px}
+    .hero h1 em{color:#f2d279;font-style:normal}
+    .hero p{margin:0;color:rgba(255,255,255,.78);max-width:800px;line-height:1.6}
+    .hero-meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+    .hero-meta-item{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:9px 14px;font-size:13px;color:rgba(255,255,255,.78)}
+    .page-content{max-width:1180px;padding:22px 4px 26px}
+    .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:20px}
+    .summary-box,.panel,.table-wrap{background:var(--card);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.72);box-shadow:0 18px 40px rgba(15,23,32,.08);border-radius:24px}
+    .summary-box{padding:20px 18px;text-align:center}
+    .summary-box .num{font-family:'Playfair Display',serif;font-size:30px;font-weight:700;line-height:1}
+    .summary-box .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--stone);font-weight:700;margin-top:5px}
+    .panel{padding:22px 20px;margin-bottom:20px}
+    .auth-row{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px}
+    .auth-status{font-size:14px;line-height:1.6;color:#344054;max-width:720px}
+    .auth-status strong{color:var(--ink)}
+    .signin-form{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+    .signin-form input{height:44px;padding:0 14px;border-radius:12px;border:1px solid #cfd8e3;min-width:200px;background:rgba(255,255,255,.92);box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+    .btn{height:44px;border:none;border-radius:14px;padding:0 22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;min-width:140px;transition:all .25s ease;gap:8px}
+    .btn-primary{background:linear-gradient(135deg,#ffd100,#ffb800);color:#1a1a1a;box-shadow:0 6px 18px rgba(255,209,0,.35)}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(255,209,0,.5)}
+    .btn-secondary{background:linear-gradient(135deg,#101827,#1f2937);color:#fff;border:1px solid rgba(255,255,255,.1)}
+    .btn-secondary:hover{background:linear-gradient(135deg,#1f2937,#374151)}
+    .signin-note{margin-top:4px;font-size:13px;color:var(--stone)}
+    .table-wrap{overflow:hidden}
+    .day-header{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.44)}
+    .day-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700}
+    .day-count{font-size:12px;color:var(--stone);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+    table{width:100%;border-collapse:collapse}
+    th{background:linear-gradient(135deg,#101827,#1d2737);color:#fff;padding:12px 14px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;text-align:left;white-space:nowrap}
+    td{padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:top;font-size:13.5px;line-height:1.45}
+    tr:nth-child(even) td{background:rgba(245,247,251,.72)}
+    tr:last-child td{border-bottom:none}
+    .status-pill,.need-pill,.priority-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
+    .status-pill.done{background:rgba(31,122,69,.12);color:var(--success)}
+    .status-pill.pending{background:rgba(154,103,0,.12);color:var(--warn)}
+    .need-pill.yes{background:rgba(180,35,24,.12);color:var(--danger)}
+    .need-pill.recommended{background:rgba(154,103,0,.12);color:var(--warn)}
+    .need-pill.no{background:rgba(102,112,133,.12);color:var(--stone)}
+    .priority-pill.high{background:rgba(180,35,24,.12);color:var(--danger)}
+    .priority-pill.medium{background:rgba(154,103,0,.12);color:var(--warn)}
+    .priority-pill.low{background:rgba(102,112,133,.12);color:var(--stone)}
+    .item-cell strong{display:block;margin-bottom:4px}
+    .item-cell a{font-size:12px;text-decoration:none}
+    .checkbox-wrap{display:flex;align-items:center;gap:10px}
+    .reserve-checkbox{width:18px;height:18px;accent-color:var(--success);cursor:pointer}
+    .reserve-checkbox:disabled{cursor:not-allowed;opacity:.55}
+    .muted{color:var(--stone)}
+    .footer-note{padding:12px 2px 0;color:var(--stone);font-size:13px}
+    @media (max-width:1024px){body{padding:12px}#main{margin-left:0;width:100%}#sidebar{transform:translateX(-100%)}#sidebar.open{transform:translateX(0)}#menu-toggle{display:block}.sidebar-overlay.open{display:block}.hero{padding:44px 26px 34px}}
+    @media (max-width:768px){body{padding:10px}.hero{padding:60px 20px 28px;border-radius:28px}.page-content{padding:16px 0 22px}.summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}th:nth-child(4),td:nth-child(4),th:nth-child(7),td:nth-child(7){display:none}.signin-form input{min-width:unset;flex:1 1 160px}}
+  
+/* Shared countdown */
+#countdown-box{
+  position:fixed;top:16px;right:16px;z-index:250;
+  min-width:86px;padding:10px 12px;border-radius:18px;
+  background:rgba(16,24,39,.92);backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.12);box-shadow:0 14px 30px rgba(3,8,20,.28);
+  text-align:center;color:#fff;
+}
+#countdown-number{
+  font-family:'Playfair Display',serif;font-size:28px;font-weight:900;line-height:1;color:var(--gold, #FFD100);
+}
+#countdown-label{
+  margin-top:4px;font-size:11px;line-height:1.2;letter-spacing:.04em;color:rgba(255,255,255,.82);
+}
+@media (max-width: 768px){
+  #countdown-box{top:12px;right:12px;min-width:74px;padding:8px 10px;border-radius:16px}
+  #countdown-number{font-size:24px}
+  #countdown-label{font-size:10px}
+}
+
 </style>
 </head>
-<body>
-<div class="sidebar">
-<h3>Trip</h3>
-<a class="nav" href="index.html">Trip Overview</a><a class="nav" href="checklist.html">Trip Checklist</a><a class="nav" href="stay.html">Stay Details</a><a class="nav" href="tripdetails.html">Trip Details</a><a class="nav" href="driving.html">Driving Details</a><a class="nav" href="parking.html">Parking Details</a><a class="nav" href="eat.html">Where to Eat</a><a class="nav" href="reservations.html">Reservations</a><a class="nav" href="dresscode.html">Dress Code</a><a class="nav" href="photos.html">Photo Shoot Spots</a><a class="nav" href="gallery.html">Gallery</a>
-</div>
-<div class="main">
-<h1>Reservations</h1>
-<p>Content for Reservations</p>
-</div>
-<div class="countdown" id="cd"></div>
+<body><div id="countdown-box"><div id="countdown-number">--</div><div id="countdown-label">days to go ✈️</div></div>
+  <button id="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+  <nav id="sidebar"><div class="sidebar-header"><div class="trip-flag"><div class="flag-stripe" style="background:var(--nl)"></div><div class="flag-stripe" style="background:var(--nl-accent)"></div><div class="flag-stripe" style="background:var(--nl)"></div><div class="flag-stripe" style="background:var(--be-ink)"></div><div class="flag-stripe" style="background:var(--be)"></div><div class="flag-stripe" style="background:var(--fr-red)"></div><div class="flag-stripe" style="background:#fff"></div><div class="flag-stripe" style="background:var(--fr)"></div></div><div class="sidebar-title">Netherlands, Belgium<br/>&amp; France 2026</div><div class="sidebar-dates">May 8 – May 17, 2026 · 10 Days</div></div><div class="nav-section-label">Overview</div><a class="nav-item" href="index.html"><span class="nav-icon">🗺️</span> Trip Overview</a><a class="nav-item" href="packing.html"><span class="nav-icon">🧳</span> Trip Packing Checklist</a><a class="nav-item" href="checklist.html"><span class="nav-icon">✅</span> Trip Checklist</a><a class="nav-item" href="stay.html"><span class="nav-icon">🏨</span> Stay Details</a><a class="nav-item" href="tripdetails.html"><span class="nav-icon">📋</span> Trip Details</a><div class="nav-section-label">Getting Around</div><a class="nav-item" href="driving.html"><span class="nav-icon">🚗</span> Driving Details</a><a class="nav-item" href="parking.html"><span class="nav-icon">🅿️</span> Parking Details</a><div class="nav-section-label">Food & Plans</div><a class="nav-item" href="eat.html"><span class="nav-icon">🍽️</span> Where to Eat</a><a class="nav-item active" href="reservations.html"><span class="nav-icon">📌</span> Reservations</a><div class="nav-section-label">Style & Photos</div><a class="nav-item" href="dresscode.html"><span class="nav-icon">👗</span> Dress Code</a><a class="nav-item" href="photos.html"><span class="nav-icon">📸</span> Photo Shoot Spots</a><a class="nav-item" href="gallery.html"><span class="nav-icon">🖼️</span> Gallery</a></nav>
+
+  <main id="main">
+    <section class="hero">
+      <div class="page-top-icon">
+        <img src="https://jobimon.github.io/ThreeSistersTrips/ThreeSisters.png" alt="Three Sisters icon">
+        <span>Shared reservations</span>
+      </div>
+      <div class="hero-eyebrow">Booking control board</div>
+      <h1>Reservations <em>& status</em></h1>
+      <p>Anyone can view this page. Sign in is required to check items as reserved. Updates sync live for everyone using the same Firebase project as your checklist.</p>
+      <div class="hero-meta">
+        <div class="hero-meta-item"><strong>Trip:</strong> Netherlands · Belgium · France</div>
+        <div class="hero-meta-item"><strong>Window:</strong> May 8–17, 2026</div>
+        <div class="hero-meta-item"><strong>Shared:</strong> Real-time Firestore sync</div>
+      </div>
+    </section>
+
+    <div class="page-content">
+      <div class="summary-grid" id="summaryGrid"></div>
+
+      <section class="panel">
+        <div class="auth-row">
+          <div>
+            <div class="auth-status" id="authStatus"><strong>Checking sign-in…</strong></div>
+            <div class="signin-note">Use the same email/password login from the checklist page. View is public; edits require sign-in.</div>
+          </div>
+          <form class="signin-form" id="signinForm">
+            <input type="email" id="emailInput" placeholder="Email address" autocomplete="username" />
+            <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password" />
+            <button class="btn btn-primary" type="submit" id="signinBtn"><span>Sign in</span></button>
+            <button class="btn btn-secondary" type="button" id="signoutBtn" style="display:none;"><span>Sign out</span></button>
+          </form>
+        </div>
+      </section>
+
+      <div id="daySections"></div>
+      <div class="footer-note">Tip: rows marked <strong>Recommended</strong> are included in the shared tracker so you can still check them off once booked or intentionally skipped.</div>
+    </div>
+  </main>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('overlay').classList.toggle('open');
+    }
+
+    const RESERVATION_ITEMS = [
+      {id:"r01",done:true,day:"Day 1",category:"Stay",item:"Novotel Amsterdam Schiphol Airport",date:"8-May",time:"Check-in",location:"Taurusavenue 12, Hoofddorp",need:"Yes",priority:"High",link:"https://all.accor.com/hotel/7060/index.en.shtml"},
+      {id:"r02",done:true,day:"Day 1",category:"Transport",item:"SIXT Car Rental AMS",date:"8-May",time:"5:15 PM",location:"Schiphol Airport",need:"Yes",priority:"High",link:"https://www.sixt.com/car-rental/netherlands/amsterdam/schiphol-airport/"},
+      {id:"r03",done:false,day:"Day 1",category:"Parking",item:"Parking Centrum Oosterdok",date:"8-May",time:"7:30 PM",location:"Amsterdam",need:"Recommended",priority:"Medium",link:"https://www.parkingcentrumoosterdok.nl/"},
+      {id:"r04",done:false,day:"Day 1",category:"Restaurant",item:"The Pantry Amsterdam",date:"8-May",time:"9:30 PM",location:"Leidsekruisstraat 21",need:"Recommended",priority:"Medium",link:"https://www.thepantry.nl/"},
+      {id:"r05",done:true,day:"Day 2",category:"Attraction",item:"Keukenhof Gardens",date:"9-May",time:"8:15 AM",location:"Lisse",need:"Yes",priority:"High",link:"https://keukenhof.nl/en/tickets/"},
+      {id:"r06",done:true,day:"Day 2",category:"Parking",item:"Keukenhof Parking",date:"9-May",time:"8:00 AM",location:"Lisse",need:"Recommended",priority:"Medium",link:"https://keukenhof.nl/en/plan-your-visit/parking/"},
+      {id:"r07",done:false,day:"Day 2",category:"Parking",item:"Q-Park Bijenkorf",date:"9-May",time:"1:20 PM",location:"Amsterdam",need:"Recommended",priority:"Medium",link:"https://www.q-park.nl/en-gb/parking/amsterdam/bijenkorf/"},
+      {id:"r08",done:false,day:"Day 2",category:"Activity",item:"Amsterdam Canal Cruise (Lovers)",date:"9-May",time:"1:45 PM",location:"Amsterdam",need:"Yes",priority:"High",link:"https://www.lovers.nl/en/canal-cruises-amsterdam/"},
+      {id:"r09",done:false,day:"Day 2",category:"Restaurant",item:"Masami Fusion Cuisine",date:"9-May",time:"7:30 PM",location:"Hoofddorp",need:"Recommended",priority:"Medium",link:"https://www.masamifusion.nl/"},
+      {id:"r10",done:false,day:"Day 2",category:"Stay",item:"Novotel Amsterdam Schiphol Airport",date:"9-May",time:"Night",location:"Hoofddorp",need:"Yes",priority:"High",link:"https://all.accor.com/hotel/7060/index.en.shtml"},
+      {id:"r11",done:false,day:"Day 3",category:"Parking",item:"Zaanse Schans Parking",date:"10-May",time:"9:40 AM",location:"Zaandam",need:"No",priority:"Low",link:"https://www.dezaanseschans.nl/en/visit/parking/"},
+      {id:"r12",done:false,day:"Day 3",category:"Parking",item:"Volendam Parking",date:"10-May",time:"12:45 PM",location:"Volendam",need:"No",priority:"Low",link:"https://www.volendam-marken.nl/plan-your-visit/"},
+      {id:"r13",done:false,day:"Day 3",category:"Restaurant",item:"WOODSTONE Pizza & Wine",date:"10-May",time:"7:00 PM",location:"Hoofddorp",need:"Recommended",priority:"Medium",link:"https://www.woodstonepizza.nl/"},
+      {id:"r14",done:false,day:"Day 3",category:"Stay",item:"Novotel Amsterdam Schiphol Airport",date:"10-May",time:"Night",location:"Hoofddorp",need:"Yes",priority:"High",link:"https://all.accor.com/hotel/7060/index.en.shtml"},
+      {id:"r15",done:true,day:"Day 4",category:"Transport",item:"SIXT Second Car Rental",date:"11-May",time:"7:50 AM",location:"Schiphol Airport",need:"Yes",priority:"High",link:"https://www.sixt.com/car-rental/netherlands/amsterdam/schiphol-airport/"},
+      {id:"r16",done:false,day:"Day 4",category:"Activity",item:"Giethoorn Boat Rental",date:"11-May",time:"10:15 AM",location:"Giethoorn",need:"Yes",priority:"High",link:"https://giethoornboatrental.com/"},
+      {id:"r17",done:false,day:"Day 4",category:"Parking",item:"Giethoorn P1 Parking",date:"11-May",time:"9:45 AM",location:"Giethoorn",need:"No",priority:"Low",link:"https://giethoorn.com/parking/"},
+      {id:"r18",done:false,day:"Day 4",category:"Parking",item:"Bruges Centrum Parking",date:"11-May",time:"2:45 PM",location:"Bruges",need:"Recommended",priority:"Medium",link:"https://www.interparking.be/en/find-parking/Station"},
+      {id:"r19",done:true,day:"Day 4",category:"Restaurant",item:"Cambrinus Bruges",date:"11-May",time:"7:00 PM",location:"Bruges",need:"Recommended",priority:"Medium",link:"https://www.cambrinus.eu/"},
+      {id:"r20",done:true,day:"Day 4",category:"Stay",item:"Airbnb Bruges",date:"11-May",time:"Night",location:"Bruges",need:"Yes",priority:"High",link:"https://www.airbnb.com/"},
+      {id:"r21",done:false,day:"Day 5",category:"Parking",item:"Katelijne Parking Bruges",date:"12-May",time:"7:40 AM",location:"Bruges",need:"Recommended",priority:"Medium",link:"https://www.interparking.be/en/find-parking/Katelijne"},
+      {id:"r22",done:false,day:"Day 5",category:"Attraction",item:"Versailles Palace",date:"12-May",time:"12:50 PM",location:"Versailles",need:"Yes",priority:"High",link:"https://en.chateauversailles.fr/plan-your-visit/tickets-and-prices"},
+      {id:"r23",done:false,day:"Day 5",category:"Parking",item:"Versailles Parking",date:"12-May",time:"12:15 PM",location:"Versailles",need:"Recommended",priority:"Medium",link:"https://en.chateauversailles.fr/plan-your-visit/access"},
+      {id:"r24",done:false,day:"Day 5",category:"Stay",item:"Novotel Paris Tour Eiffel",date:"12-May",time:"Check-in",location:"Paris",need:"Yes",priority:"High",link:"https://all.accor.com/hotel/3546/index.en.shtml"},
+      {id:"r25",done:false,day:"Day 5",category:"Parking",item:"Q-Park Champs Elysees",date:"12-May",time:"5:20 PM",location:"Paris",need:"Recommended",priority:"Medium",link:"https://www.q-park.fr/en-gb/parking/paris/marceau-champs-elysees/"},
+      {id:"r26",done:false,day:"Day 5",category:"Restaurant",item:"Les Ombres Restaurant",date:"12-May",time:"6:50 PM",location:"Paris",need:"Yes",priority:"High",link:"https://www.lesombres-restaurant.com/en/reservation/"},
+      {id:"r27",done:false,day:"Day 5",category:"Parking",item:"Eiffel Parking Quai Branly",date:"12-May",time:"6:40 PM",location:"Paris",need:"Recommended",priority:"Medium",link:"https://www.saemes.fr/en/parking/parking-quai-branly-tour-eiffel"},
+      {id:"r28",done:false,day:"Day 6",category:"Parking",item:"Étretat Parking",date:"13-May",time:"10:45 AM",location:"Étretat",need:"No",priority:"Low",link:"https://www.etretat.fr/en/access-and-parking/"},
+      {id:"r29",done:false,day:"Day 6",category:"Parking",item:"Mont-Saint-Michel Parking",date:"13-May",time:"6:15 PM",location:"Beauvoir",need:"Recommended",priority:"Medium",link:"https://www.bienvenueaumontsaintmichel.com/en/access-and-transport/parking"},
+      {id:"r30",done:false,day:"Day 6",category:"Restaurant",item:"La Sirène Crêperie",date:"13-May",time:"8:20 PM",location:"Mont-Saint-Michel",need:"Recommended",priority:"Low",link:"https://www.tripadvisor.com/Restaurant_Review-g187246-d1322636-Reviews-La_Sirene-Mont_Saint_Michel_Manche_Basse_Normandie_Normandy.html"},
+      {id:"r31",done:true,day:"Day 6",category:"Stay",item:"Airbnb Beauvoir",date:"13-May",time:"Night",location:"Beauvoir",need:"Yes",priority:"High",link:"https://www.airbnb.com/"},
+      {id:"r32",done:false,day:"Day 7",category:"Parking",item:"Indigo Notre-Dame Parking",date:"14-May",time:"5:45 PM",location:"Paris",need:"Recommended",priority:"Medium",link:"https://www.indigoneo.fr/en/parkings/paris-lutece"},
+      {id:"r33",done:false,day:"Day 7",category:"Restaurant",item:"Le Petit Gourmet",date:"14-May",time:"8:10 PM",location:"Creteil",need:"Recommended",priority:"Low",link:"https://www.tripadvisor.com/"},
+      {id:"r34",done:false,day:"Day 7",category:"Transport",item:"Car Return CDG",date:"14-May",time:"9:10 PM",location:"CDG Airport",need:"Yes",priority:"High",link:"https://www.sixt.com/"},
+      {id:"r35",done:false,day:"Day 7",category:"Attraction",item:"Eiffel Tower Ticket (Night)",date:"14-May",time:"11:00 PM",location:"Paris",need:"Yes",priority:"High",link:"https://www.toureiffel.paris/en/tickets"},
+      {id:"r36",done:true,day:"Day 7",category:"Stay",item:"Airbnb Créteil",date:"14-May",time:"Night",location:"Créteil",need:"Yes",priority:"High",link:"https://www.airbnb.com/"},
+      {id:"r37",done:false,day:"Day 8",category:"Parking",item:"Orly Airport Parking P4a",date:"15-May",time:"5:00 AM",location:"Orly",need:"Yes",priority:"High",link:"https://www.parisaeroport.fr/en/passengers/access/paris-orly/car-parks"},
+      {id:"r38",done:false,day:"Day 8",category:"Flight",item:"Flight ORY → TLS",date:"15-May",time:"7:00 AM",location:"Paris Orly",need:"Yes",priority:"High",link:"https://www.google.com/travel/flights"},
+      {id:"r39",done:false,day:"Day 8",category:"Transport",item:"Toulouse Car Rental",date:"15-May",time:"8:15 AM",location:"Toulouse",need:"Yes",priority:"High",link:"https://www.sixt.com/"},
+      {id:"r40",done:false,day:"Day 8",category:"Parking",item:"Lourdes Parking",date:"15-May",time:"10:45 AM",location:"Lourdes",need:"Recommended",priority:"Medium",link:"https://www.lourdes-france.org/en/practical-information/parking/"},
+      {id:"r41",done:false,day:"Day 8",category:"Transport",item:"Return Car Toulouse",date:"15-May",time:"4:15 PM",location:"Toulouse",need:"Yes",priority:"High",link:"https://www.sixt.com/"},
+      {id:"r42",done:false,day:"Day 8",category:"Flight",item:"Flight TLS → ORY",date:"15-May",time:"7:00 PM",location:"Toulouse",need:"Yes",priority:"High",link:"https://www.google.com/travel/flights"},
+      {id:"r43",done:true,day:"Day 8",category:"Stay",item:"Airbnb Créteil",date:"15-May",time:"Night",location:"Créteil",need:"Yes",priority:"High",link:"https://www.airbnb.com/"},
+      {id:"r44",done:false,day:"Day 9",category:"Parking",item:"Eiffel Parking",date:"16-May",time:"9:00 AM",location:"Paris",need:"Recommended",priority:"Medium",link:"https://www.saemes.fr/en/parking/parking-quai-branly-tour-eiffel"},
+      {id:"r45",done:false,day:"Day 9",category:"Attraction",item:"Eiffel Tower Day Ticket",date:"16-May",time:"10:00 AM",location:"Paris",need:"Yes",priority:"High",link:"https://www.toureiffel.paris/en/tickets"},
+      {id:"r46",done:false,day:"Day 9",category:"Parking",item:"Louvre Parking",date:"16-May",time:"12:00 PM",location:"Paris",need:"Recommended",priority:"Medium",link:"https://www.indigoneo.fr/en/parkings/paris-pyramides"},
+      {id:"r47",done:false,day:"Day 9",category:"Attraction",item:"Louvre Museum",date:"16-May",time:"1:00 PM",location:"Paris",need:"Yes",priority:"High",link:"https://www.louvre.fr/en/tickets"},
+      {id:"r48",done:false,day:"Day 9",category:"Parking",item:"Arc Parking Kleber",date:"16-May",time:"3:30 PM",location:"Paris",need:"Recommended",priority:"Medium",link:"https://www.indigoneo.fr/en/parkings/paris-kleber"},
+      {id:"r49",done:false,day:"Day 9",category:"Attraction",item:"Arc de Triomphe Ticket",date:"16-May",time:"3:45 PM",location:"Paris",need:"Yes",priority:"Medium",link:"https://www.paris-arc-de-triomphe.fr/en/"},
+      {id:"r50",done:false,day:"Day 9",category:"Parking",item:"Saint-Germain Parking",date:"16-May",time:"7:00 PM",location:"Paris",need:"Recommended",priority:"Medium",link:"https://www.indigoneo.fr/en/parkings/paris-saint-germain"},
+      {id:"r51",done:false,day:"Day 9",category:"Restaurant",item:"Le Relais de l'Entrecôte",date:"16-May",time:"7:30 PM",location:"Paris",need:"Recommended",priority:"Medium",link:"https://www.relaisentrecote.fr/"},
+      {id:"r52",done:true,day:"Day 9",category:"Stay",item:"Airbnb Créteil",date:"16-May",time:"Night",location:"Créteil",need:"Yes",priority:"High",link:"https://www.airbnb.com/"},
+      {id:"r53",done:false,day:"Day 10",category:"Transport",item:"Car Return CDG Final",date:"17-May",time:"8:15 AM",location:"CDG Airport",need:"Yes",priority:"High",link:"https://www.sixt.com/"},
+      {id:"r54",done:true,day:"Day 10",category:"Flight",item:"Flight Home",date:"17-May",time:"11:30 AM",location:"CDG Airport",need:"Yes",priority:"High",link:"https://www.google.com/travel/flights"}
+    ];
+  </script>
+  <script>
+    window.FIREBASE_CONFIG = window.FIREBASE_CONFIG || {
+      apiKey: "AIzaSyDA3vgzzLHyg2d0Xv3XnKU2gSjDyGBvWr0",
+      authDomain: "threesisterseuropetrip.firebaseapp.com",
+      projectId: "threesisterseuropetrip",
+      storageBucket: "threesisterseuropetrip.firebasestorage.app",
+      messagingSenderId: "421699331524",
+      appId: "1:421699331524:web:abc123"
+    };
+    window.RESERVATIONS_DOC_PATH = window.RESERVATIONS_DOC_PATH || "tripReservations/three-sisters-europe-2026";
+  </script>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+    import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+
+    const app = initializeApp(window.FIREBASE_CONFIG);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const sharedDoc = doc(db, window.RESERVATIONS_DOC_PATH);
+
+    const summaryGrid = document.getElementById('summaryGrid');
+    const daySections = document.getElementById('daySections');
+    const authStatus = document.getElementById('authStatus');
+    const signinForm = document.getElementById('signinForm');
+    const emailInput = document.getElementById('emailInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const signinBtn = document.getElementById('signinBtn');
+    const signoutBtn = document.getElementById('signoutBtn');
+
+    let currentUser = null;
+    let liveStatuses = Object.fromEntries(RESERVATION_ITEMS.map(item => [item.id, item.done]));
+
+    function normalizedNeed(value) {
+      return String(value || '').toLowerCase();
+    }
+
+    function counts() {
+      const totalItems = RESERVATION_ITEMS.length;
+      const needsReservation = RESERVATION_ITEMS.filter(item => normalizedNeed(item.need) !== 'no').length;
+      const noReservationNeeded = RESERVATION_ITEMS.filter(item => normalizedNeed(item.need) === 'no').length;
+      const reservedAlready = RESERVATION_ITEMS.filter(item => liveStatuses[item.id]).length;
+      const stillPending = RESERVATION_ITEMS.filter(item => normalizedNeed(item.need) !== 'no' && !liveStatuses[item.id]).length;
+      return { totalItems, needsReservation, noReservationNeeded, reservedAlready, stillPending };
+    }
+
+    function needClass(need) {
+      const key = normalizedNeed(need);
+      if (key === 'yes') return 'yes';
+      if (key === 'recommended') return 'recommended';
+      return 'no';
+    }
+
+    function priorityClass(priority) {
+      return String(priority || '').toLowerCase();
+    }
+
+    function renderSummary() {
+      const c = counts();
+      summaryGrid.innerHTML = `
+        <div class="summary-box"><div class="num">${c.totalItems}</div><div class="lbl">Total tracked items</div></div>
+        <div class="summary-box"><div class="num">${c.needsReservation}</div><div class="lbl">Reservations needed</div></div>
+        <div class="summary-box"><div class="num">${c.reservedAlready}</div><div class="lbl">Reserved already</div></div>
+        <div class="summary-box"><div class="num">${c.stillPending}</div><div class="lbl">Still pending</div></div>
+        <div class="summary-box"><div class="num">${c.noReservationNeeded}</div><div class="lbl">No reservation needed</div></div>
+      `;
+    }
+
+    function renderDays() {
+      const grouped = RESERVATION_ITEMS.reduce((acc, item) => {
+        acc[item.day] = acc[item.day] || [];
+        acc[item.day].push(item);
+        return acc;
+      }, {});
+
+      daySections.innerHTML = Object.entries(grouped).map(([day, items]) => {
+        const doneCount = items.filter(item => liveStatuses[item.id]).length;
+        const rows = items.map(item => `
+          <tr>
+            <td>
+              <div class="checkbox-wrap">
+                <input class="reserve-checkbox" type="checkbox" data-id="${item.id}" ${liveStatuses[item.id] ? 'checked' : ''} ${currentUser ? '' : 'disabled'}>
+                <span class="status-pill ${liveStatuses[item.id] ? 'done' : 'pending'}">${liveStatuses[item.id] ? 'Reserved' : 'Pending'}</span>
+              </div>
+            </td>
+            <td>${item.category}</td>
+            <td class="item-cell"><strong>${item.item}</strong><a href="${item.link}" target="_blank" rel="noopener">Booking link ↗</a></td>
+            <td>${item.date}</td>
+            <td>${item.time}</td>
+            <td>${item.location}</td>
+            <td><span class="need-pill ${needClass(item.need)}">${item.need}</span></td>
+            <td><span class="priority-pill ${priorityClass(item.priority)}">${item.priority}</span></td>
+          </tr>
+        `).join('');
+
+        return `
+          <section class="table-wrap" style="margin-bottom:18px;">
+            <div class="day-header">
+              <div class="day-title">${day}</div>
+              <div class="day-count">${doneCount} of ${items.length} checked</div>
+            </div>
+            <div style="overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Status</th>
+                    <th>Category</th>
+                    <th>Item / Place</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Location</th>
+                    <th>Reservation Needed</th>
+                    <th>Priority</th>
+                  </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </div>
+          </section>
+        `;
+      }).join('');
+
+      document.querySelectorAll('.reserve-checkbox').forEach(box => {
+        box.addEventListener('change', async (event) => {
+          if (!currentUser) {
+            event.target.checked = !event.target.checked;
+            return;
+          }
+          const id = event.target.dataset.id;
+          liveStatuses[id] = event.target.checked;
+          renderSummary();
+          renderDays();
+          await setDoc(sharedDoc, {
+            statuses: liveStatuses,
+            updatedAt: serverTimestamp(),
+            updatedBy: currentUser.email || 'signed-in user'
+          }, { merge: true });
+        });
+      });
+    }
+
+    function renderAll() {
+      renderSummary();
+      renderDays();
+    }
+
+    onSnapshot(sharedDoc, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        liveStatuses = { ...liveStatuses, ...(data.statuses || {}) };
+      } else {
+        liveStatuses = Object.fromEntries(RESERVATION_ITEMS.map(item => [item.id, item.done]));
+      }
+      renderAll();
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      if (user) {
+        authStatus.innerHTML = `<strong>Signed in as:</strong> ${user.email}<br><span class="muted">You can update reservation checkboxes. Everyone else will see changes live.</span>`;
+        signinBtn.style.display = 'none';
+        signoutBtn.style.display = 'inline-flex';
+        emailInput.style.display = 'none';
+        passwordInput.style.display = 'none';
+      } else {
+        authStatus.innerHTML = `<strong>View mode is open to everyone.</strong><br><span class="muted">Sign in to mark items as reserved or pending.</span>`;
+        signinBtn.style.display = 'inline-flex';
+        signoutBtn.style.display = 'inline-flex';
+        signoutBtn.style.display = 'none';
+        emailInput.style.display = 'inline-flex';
+        passwordInput.style.display = 'inline-flex';
+      }
+      renderAll();
+    });
+
+    signinForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      try {
+        signinBtn.disabled = true;
+        signinBtn.querySelector('span').textContent = 'Signing in...';
+        await signInWithEmailAndPassword(auth, emailInput.value.trim(), passwordInput.value);
+        passwordInput.value = '';
+      } catch (error) {
+        alert(error.message || 'Sign in failed.');
+      } finally {
+        signinBtn.disabled = false;
+        signinBtn.querySelector('span').textContent = 'Sign in';
+      }
+    });
+
+    signoutBtn.addEventListener('click', async () => {
+      await signOut(auth);
+    });
+
+    renderAll();
+  </script>
 <script>
-const target = new Date("2026-05-08");
-function update(){
-let now=new Date();
-let diff=target-now;
-let d=Math.floor(diff/(1000*60*60*24));
-document.getElementById("cd").innerText="Trip in "+d+" days";
+
+function updateCountdown() {
+  var tripDate = new Date('2026-05-08T00:00:00');
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  var diff = Math.ceil((tripDate - today) / (1000 * 60 * 60 * 24));
+  var numEl = document.getElementById('countdown-number');
+  var labelEl = document.getElementById('countdown-label');
+  if (!numEl || !labelEl) return;
+  if (diff > 0) {
+    numEl.textContent = diff;
+    labelEl.textContent = diff === 1 ? 'day to go ✈️' : 'days to go ✈️';
+  } else if (diff === 0) {
+    numEl.textContent = '🎉';
+    labelEl.textContent = "It's today!";
+  } else {
+    numEl.textContent = '🌍';
+    labelEl.textContent = 'Trip is happening!';
+  }
 }
-setInterval(update,1000);
-update();
+updateCountdown();
+
+</script>
+<script>
+(function(){ var currentPage = "reservations.html"; document.querySelectorAll(".nav-item").forEach(function(link){ if(link.getAttribute("href")===currentPage) link.classList.add("active"); }); })();
 </script>
 </body>
 </html>
